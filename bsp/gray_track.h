@@ -13,5 +13,7 @@ void track(void);
 
 extern float Kp;
 extern float Kd;
+extern float Kpp;
+extern float Kdd;
 
 #endif
