@@ -4,15 +4,15 @@
 #include "mpu6050.h"
 #include "math.h"
 
-int last_err = 0;
+float last_err = 0;
 float Kp = 30;
 float Kd = 1;
-float Kpp = 2;
-float Kdd = 2;
+float Kpp = 1.5;
+float Kdd = 1.5;
 
-int track_error(void)
+float track_error(void)
 {
-    int sum = 0;
+    float sum = 0;
     int cnt = 0;
 
     if (O1 == 0) { sum -= 1.5; cnt++; }
@@ -25,7 +25,7 @@ int track_error(void)
         return last_err > 0 ? 3 : -3;
     }
 
-    return sum / cnt;
+    return sum / (float)cnt;
 }
 
 void track(void)

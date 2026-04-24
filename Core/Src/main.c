@@ -110,7 +110,7 @@ void key_proc()
 		else if(KEYS[1].key_short == 1)
 		{
 			Selt_para++;
-			if(Selt_para >= 2)
+			if(Selt_para >= 4)
 			{
 				Selt_para = 0;
 			}
@@ -122,12 +122,22 @@ void key_proc()
 			{
 				case 0:
 				{
-					Kp++;
+					Kp+=0.5;
 					break;
 				}
 				case 1:
 				{
-					Kd++;
+					Kd+=0.5;
+					break;
+				}
+				case 2:
+				{
+					Kpp+=0.5;
+					break;
+				}
+				case 3:
+				{
+					Kdd+=0.5;
 					break;
 				}
 			}
@@ -139,12 +149,22 @@ void key_proc()
 			{
 				case 0:
 				{
-					Kp--;
+					Kp-=0.5;
 					break;
 				}
 				case 1:
 				{
-					Kd--;
+					Kd-=0.5;
+					break;
+				}
+				case 2:
+				{
+					Kpp-=0.5;
+					break;
+				}
+				case 3:
+				{
+					Kdd-=0.5;
 					break;
 				}
 			}
@@ -233,8 +253,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		snprintf(Text,30,"R=%.0f   L=%.0f   ",MotorAR.now,MotorBL.now);
-		OLED_ShowString(1, 1, Text);
+//		snprintf(Text,30,"R=%.0f   L=%.0f   ",MotorAR.now,MotorBL.now);
+//		OLED_ShowString(1, 1, Text);
 //		snprintf(Text,30,"%.2f    ", yaw_gyro );
 //		OLED_ShowString(2, 1, Text);
 //		snprintf(Text,30,"%.2f    ", yaw_Kalman );
@@ -249,15 +269,45 @@ int main(void)
 				if(Selt_para == 0)
 				{
 					snprintf(Text,30,"Kp=%.2f ", Kp);
-					OLED_ShowStringReverse(3, 1, Text);
+					OLED_ShowStringReverse(1, 1, Text);
 					snprintf(Text,30,"Kd=%.2f ", Kd);
+					OLED_ShowString(2, 1, Text);
+					snprintf(Text,30,"Kpp=%.2f ", Kpp);
+					OLED_ShowString(3, 1, Text);
+					snprintf(Text,30,"Kdd=%.2f ", Kdd);
 					OLED_ShowString(4, 1, Text);
 				}
 				else if(Selt_para == 1)
 				{
 					snprintf(Text,30,"Kp=%.2f ", Kp);
-					OLED_ShowString(3, 1, Text);
+					OLED_ShowString(1, 1, Text);
 					snprintf(Text,30,"Kd=%.2f ", Kd);
+					OLED_ShowStringReverse(2, 1, Text);
+					snprintf(Text,30,"Kpp=%.2f ", Kpp);
+					OLED_ShowString(3, 1, Text);
+					snprintf(Text,30,"Kdd=%.2f ", Kdd);
+					OLED_ShowString(4, 1, Text);
+				}
+				else if(Selt_para == 2)
+				{
+					snprintf(Text,30,"Kp=%.2f ", Kp);
+					OLED_ShowString(1, 1, Text);
+					snprintf(Text,30,"Kd=%.2f ", Kd);
+					OLED_ShowString(2, 1, Text);
+					snprintf(Text,30,"Kpp=%.2f ", Kpp);
+					OLED_ShowStringReverse(3, 1, Text);
+					snprintf(Text,30,"Kdd=%.2f ", Kdd);
+					OLED_ShowString(4, 1, Text);
+				}
+				else if(Selt_para == 3)
+				{
+					snprintf(Text,30,"Kp=%.2f ", Kp);
+					OLED_ShowString(1, 1, Text);
+					snprintf(Text,30,"Kd=%.2f ", Kd);
+					OLED_ShowString(2, 1, Text);
+					snprintf(Text,30,"Kpp=%.2f ", Kpp);
+					OLED_ShowString(3, 1, Text);
+					snprintf(Text,30,"Kdd=%.2f ", Kdd);
 					OLED_ShowStringReverse(4, 1, Text);
 				}
 			}
