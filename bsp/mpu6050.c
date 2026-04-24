@@ -53,10 +53,9 @@ HAL_StatusTypeDef MPU6050_Init(void)
     if (MPU6050_Write(PWR_MGMT_2, 0x00) != HAL_OK)
         return HAL_ERROR;
 
-    // 采样率 = 1k / (1 + 4) = 200Hz，200Hz的周期就是5ms，所以配置了INT的外部中断后，
-		// 就会5ms进一次外部中断
-    // With DLPF enabled the gyro output rate is 1 kHz, so 0x14 gives
-    // 1000 / (1 + 20) = about 47.62 Hz data-ready interrupts.
+		// 采样率会被底下的DLPF影响
+    // 采样率 = 1k / (1 + MPU6050_SMPLRT_DIV_VALUE) = 50Hz，50Hz的周期就是20ms，所以配置了INT的外部中断后，
+		// 就会20ms进一次外部中断
     if (MPU6050_Write(SMPLRT_DIV, MPU6050_SMPLRT_DIV_VALUE) != HAL_OK)
         return HAL_ERROR;
 

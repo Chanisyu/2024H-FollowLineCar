@@ -86,7 +86,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		key_task();
 		MPUDisp_Flag = 1;
 		Data_Flag = 1;
-
 	}
 }
 
@@ -219,7 +218,7 @@ int main(void)
 	
   pid_set_tar_speed(0,0);
   
-	//MPU6050_Init();
+	MPU6050_Init();
 	HAL_Delay(50);
   HMC5883L_Init();
 	
@@ -240,8 +239,8 @@ int main(void)
 		OLED_ShowString(1, 1, Text);
 		snprintf(Text,30,"%.2f    ", yaw_gyro );
 		OLED_ShowString(2, 1, Text);
-//		snprintf(Text,30,"%.2f    ", yaw_Kalman );
-//		OLED_ShowString(3, 1, Text);
+		snprintf(Text,30,"%.2f    ", yaw_Kalman );
+		OLED_ShowString(3, 1, Text);
 		snprintf(Text,30,"%.2f    ", yaw_hmc );
 		OLED_ShowString(4, 1, Text);
 		
@@ -285,30 +284,30 @@ int main(void)
 		if(Data_Flag == 1)
 		{
 			// 获取原始数据
-			//MPU6050_GetData();		
+			MPU6050_GetData();		
 			HMC5883L_GetData(&hmc_x, &hmc_y, &hmc_z);
 			
-//			// 通过陀螺仪计算角度，这个*0.005和EXTI的频率有关的，现在EXTI的频率是5ms一次，所以
-//			// 这里是*0.005，如果改变了EXTI的频率这里也要变的，EXTI频率的改变方法在MPU6050_Init()里有写
-//			roll_gyro += (float)gx / 16.4 * 0.005;
-//			pitch_gyro += (float)gy / 16.4 * 0.005;
-//			yaw_gyro += ((float)gz - (float)gyro_zero_z) / 16.4 * 0.005;
-//			
-//			// 计算加速度计角度
-//			roll_acc = atan((float)ay/az) * 57.296;
-//			pitch_acc = - atan((float)ax/az) * 57.296;
-//			yaw_acc = atan((float)ay/ax) * 57.296;
+			// 通过陀螺仪计算角度，这个*0.005和EXTI的频率有关的，现在EXTI的频率是5ms一次，所以
+			// 这里是*0.005，如果改变了EXTI的频率这里也要变的，EXTI频率的改变方法在MPU6050_Init()里有写
+			roll_gyro += (float)gx / 16.4 * 0.005;
+			pitch_gyro += (float)gy / 16.4 * 0.005;
+			yaw_gyro += ((float)gz - (float)gyro_zero_z) / 16.4 * 0.005;
+			
+			// 计算加速度计角度
+			roll_acc = atan((float)ay/az) * 57.296;
+			pitch_acc = - atan((float)ax/az) * 57.296;
+			yaw_acc = atan((float)ay/ax) * 57.296;
 			
 			// 计算磁力偏航角
-			hmc_x_cal = ((float)hmc_x+28.5) * 1.06f;
-			hmc_y_cal = ((float)hmc_y+13.5) * 0.95f;
+			hmc_x_cal = ((float)hmc_x - OFFSET_X) * SCALE_X;
+			hmc_y_cal = ((float)hmc_y - OFFSET_Y) * SCALE_Y;
 			yaw_hmc = atan2f(hmc_y_cal, hmc_x_cal)*57.296f;		
 			
-//			// 卡尔曼滤波融合角度		
-//			roll_Kalman = Kalman_Filter(&KF_Roll, roll_acc, (float)gx / 16.4 );
-//			pitch_Kalman = Kalman_Filter(&KF_Pitch, pitch_acc, (float)gy / 16.4 );
-//			yaw_Kalman = Kalman_Filter(&KF_Yaw, yaw_hmc, ((float)gz - (float)gyro_zero_z) / 16.4 );
-//			
+			// 卡尔曼滤波融合角度		
+			roll_Kalman = Kalman_Filter(&KF_Roll, roll_acc, (float)gx / 16.4 );
+			pitch_Kalman = Kalman_Filter(&KF_Pitch, pitch_acc, (float)gy / 16.4 );
+			yaw_Kalman = Kalman_Filter(&KF_Yaw, yaw_hmc, ((float)gz - (float)gyro_zero_z) / 16.4 );
+			
 			Data_Flag = 0;
 		}
 		
