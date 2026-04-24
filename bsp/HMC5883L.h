@@ -18,12 +18,12 @@
 #define HMC5883L_IRB 0x0B
 #define HMC5883L_IRC 0x0C
 
-#define OFFSET_X -15
-#define OFFSET_Y -285
-#define OFFSET_Z -214
-#define SCALE_X 1.05
-#define SCALE_Y 1.00
-#define SCALE_Z 1.01
+#define OFFSET_X -28.5
+#define OFFSET_Y -13.5
+#define OFFSET_Z 0x00
+#define SCALE_X 1.06f
+#define SCALE_Y 0.95f
+#define SCALE_Z 0x00
 
 HAL_StatusTypeDef HMC5883L_Write(uint8_t addr, uint8_t dat);
 HAL_StatusTypeDef HMC5883L_Read(uint8_t addr, uint8_t *dat);

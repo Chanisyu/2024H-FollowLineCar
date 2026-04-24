@@ -100,38 +100,6 @@ HAL_StatusTypeDef HMC5883L_GetData(int16_t *x, int16_t *y, int16_t *z)
 }
 
 
-//HAL_StatusTypeDef HMC5883L_GetData(int16_t *x, int16_t *y, int16_t *z)
-//{
-//	// 楂樹綅鏁版嵁鍜屼綆浣嶆暟鎹紝鑾峰彇鍚庢嫾璧锋潵
-//	// 杩欓噷閲囩敤璇诲叚娆″崟瀛楄妭鍐嶆嫾璧锋潵鐨勬柟娉?
-//	// 鏇村悎鐞嗙殑鏄娇鐢≧eadByte鍑芥暟涓€娆℃€ц鍙栧叚涓瓧鑺?
-//	// 鍙互鍙傝€僲pu6050.c鐨凴eadByte鍐欐硶
-//	
-//	// 鎴戦噸鍐欎簡杩欎釜鍑芥暟锛屾妸鍘熸潵 鐩存帴鍦ㄥ嚱鏁伴噷淇敼鎸囧畾鍙橀噺 鍙樻垚浜?浼犲叆鎸囬拡銆佷慨鏀规寚閽堟寚鍚戠殑鍙橀噺
-//	// 杩樺鍔犱簡鐘舵€佽繑鍥炲€?
-//	uint8_t data_h, data_l;
-//	if(HMC5883L_Read(HMC5883L_DOXMR, &data_h) != HAL_OK)
-//		return HAL_ERROR;
-//	if(HMC5883L_Read(HMC5883L_DOXLR, &data_l) != HAL_OK)
-//		return HAL_ERROR;
-//	*x = data_l | (data_h << 8);
-
-//	if(HMC5883L_Read(HMC5883L_DOYMR, &data_h) != HAL_OK)
-//		return HAL_ERROR;
-//	if(HMC5883L_Read(HMC5883L_DOYLR, &data_l) != HAL_OK)
-//		return HAL_ERROR;
-//	*y = data_l | (data_h << 8);
-
-//	if(HMC5883L_Read(HMC5883L_DOZMR, &data_h) != HAL_OK)
-//		return HAL_ERROR;
-//	if(HMC5883L_Read(HMC5883L_DOZLR, &data_l) != HAL_OK)
-//		return HAL_ERROR;
-//	*z = data_l | (data_h << 8);
-//	
-//	return HAL_OK;
-//}
-
-
 
 
 	
