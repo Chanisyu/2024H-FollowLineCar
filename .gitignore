@@ -1,0 +1,86 @@
+# =========================
+# STM32CubeMX + Keil uVision / MDK-ARM
+# =========================
+
+# -------------------------------------------------
+# Keep these files tracked:
+#   *.ioc        CubeMX project configuration
+#   *.uvprojx    Keil project structure
+#   *.sct        scatter/linker script, often project-critical
+#   Core/
+#   Drivers/
+#   Middlewares/
+# -------------------------------------------------
+
+# User-specific Keil UI/layout files
+*.uvguix
+*.uvguix.*
+*.uvgui
+*.uvgui.*
+
+# Keil project options
+# For personal projects, ignoring this is usually OK.
+# For team projects where debugger / flash settings should be shared,
+# consider removing this rule.
+*.uvoptx
+*.uvopt
+
+# Build output folders
+Objects/
+Listings/
+DebugConfig/
+RTE/_Project/
+
+# Build output files
+*.o
+*.O
+*.obj
+*.OBJ
+*.d
+*.D
+*.crf
+*.CRF
+*.map
+*.MAP
+*.lst
+*.LST
+*.axf
+*.AXF
+*.elf
+*.ELF
+*.hex
+*.HEX
+*.bin
+*.BIN
+*.lnp
+*.LNP
+*.plg
+*.PLG
+*.build_log.htm
+*.BUILD_LOG.HTM
+
+# Be careful with *.lib:
+# Only enable this if all .lib files in your project are generated outputs.
+# *.lib
+# *.LIB
+
+# Logs
+JLinkLog*.txt
+ULINK*.txt
+*.log
+
+# Temp / backup
+*.bak
+*.tmp
+*.dep
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+desktop.ini
+
+.vscode/
+.idea/
+
+# Optional: if generated locally and not needed
+# EventRecorder/
