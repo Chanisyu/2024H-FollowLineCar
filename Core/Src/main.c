@@ -192,63 +192,6 @@ void key_proc()
 			KEYS[3].key_short = 0;
 		}
 	}
-	if(State == -1)
-	{
-		// 这里复用了State0的参数选择状态变量
-		if(KEYS[1].key_short == 1)
-		{
-			Selt_para++;
-			if(Selt_para >= 3)
-			{
-				Selt_para = 0;
-			}
-			KEYS[1].key_short = 0;
-		}
-		else if(KEYS[2].key_short == 1)
-		{
-			switch(Selt_para)
-			{
-				case 0:
-				{
-					angle.p+=0.1;
-					break;
-				}
-				case 1:
-				{
-					KppForANG+=0.01;
-					break;
-				}
-				case 2:
-				{
-					angle.d+=0.5;
-					break;
-				}
-			}
-			KEYS[2].key_short = 0;
-		}
-		else if(KEYS[3].key_short == 1)
-		{
-			switch(Selt_para)
-			{
-				case 0:
-				{
-					angle.p-=0.1;
-					break;
-				}
-				case 1:
-				{
-					KppForANG-=0.01;
-					break;
-				}
-				case 2:
-				{
-					angle.d-=0.5;
-					break;
-				}
-			}
-			KEYS[3].key_short = 0;
-		}
-	}
 }
 
 /* USER CODE END 0 */
@@ -340,12 +283,6 @@ int main(void)
 			{
 				snprintf(Text,30,"yaw_hmc=%.3f   ", yaw_hmc);
 				OLED_ShowString(1, 1, Text);
-				snprintf(Text,30,"P=%.1f   ", angle.p);
-				OLED_ShowString(2, 1, Text);
-				snprintf(Text,30,"Kpp=%.2f   ", KppForANG);
-				OLED_ShowString(3, 1, Text);
-				snprintf(Text,30,"D=%.1f   ", angle.d);
-				OLED_ShowString(4, 1, Text);
 			}
 			else if(State == 0)
 			{
@@ -443,8 +380,7 @@ int main(void)
 		// 测试角度环
 		if(State == -1)
 		{
-			angle.target = -150;
-			ANGLOOP = 1;
+			
 		}
 		
 		if(State == 0)
@@ -459,19 +395,20 @@ int main(void)
 		{
 			ANGLOOP = 1;
 			// 让小车沿着一开始摆放的方向行驶，不使用角度环
-			if( (total_left + total_right)/2 > 7000)
+			if( (total_left + total_right)/2 > 7500)
 			{
 				State = 2;
 				// 关闭角度环，启动循迹环
+				pid_set_tar_speed(50,50);
 				ANGLOOP = 0;
 			}
 			else if( (total_left + total_right)/2 > 5500 )
 			{
-				pid_set_base_speed(5);
+				pid_set_base_speed(30);
 			}
 			else
 			{
-				pid_set_base_speed(15);
+				pid_set_base_speed(50);
 			}
 			
 		}
