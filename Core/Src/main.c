@@ -38,6 +38,7 @@
 #include "buzzer.h"
 #include "key.h"
 #include "gray_track.h"
+#include "HMC5883L_Calibration.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,6 +67,9 @@ volatile uint8_t Data_Flag = 0;
 int8_t State = -1;
 uint8_t View = 0;
 uint8_t Selt_para = 0;
+
+HMC5883L_CalibrationResult HMC5883L_Cali_Res;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -255,6 +259,9 @@ int main(void)
 	// MPU6050gz的零漂校准
 	calibrate_gyro();
 	
+	HMC5883L_Calibration_RunBlocking(&HMC5883L_Cali_Res, 300, 20, App_ReadSample, App_DelayMs, 0);
+
+	
 /*----------第一题--------------------------------------------------------------------*/
 		
 		
@@ -349,8 +356,9 @@ int main(void)
 			yaw_acc = atan((float)ay/ax) * 57.296;
 			
 			// 计算磁力偏航角
-			hmc_x_cal = ((float)hmc_x - OFFSET_X) * SCALE_X;
-			hmc_y_cal = ((float)hmc_y - OFFSET_Y) * SCALE_Y;
+			hmc_x_cal = ((float)hmc_x - HMC5883L_Cali_Res.offset_x) * HMC5883L_Cali_Res.scale_x;
+			hmc_y_cal = ((float)hmc_y - HMC5883L_Cali_Res.offset_y) * HMC5883L_Cali_Res.scale_y;
+			
 			yaw_hmc = atan2f(hmc_y_cal, hmc_x_cal)*57.296f;		
 			
 			// 卡尔曼滤波融合角度		

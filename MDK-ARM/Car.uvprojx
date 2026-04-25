@@ -825,6 +825,16 @@
               <FileType>5</FileType>
               <FilePath>..\bsp\key.h</FilePath>
             </File>
+            <File>
+              <FileName>HMC5883L_Calibration.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\HMC5883L_Calibration.c</FilePath>
+            </File>
+            <File>
+              <FileName>HMC5883L_Calibration.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\bsp\HMC5883L_Calibration.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
