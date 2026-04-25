@@ -1,3 +1,4 @@
+// Hello World！
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -85,15 +86,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		pid_control();
 		key_task();
 		MPUDisp_Flag = 1;
-		Data_Flag = 1;
 	}
 }
 
-// 外部中断，由MPU6050的INT引脚接到PB5，再开启外部中断，5ms触发一次。
+// 外部中断，由MPU6050的INT引脚接到PB5，再开启外部中断，20ms触发一次，50Hz。
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if(GPIO_Pin == GPIO_PIN_5)
 	{
+		Data_Flag = 1;
 	}
 }
 
@@ -105,12 +106,13 @@ void key_proc()
 		if(KEYS[0].key_short == 1)
 		{
 			State = 1;
+			OLED_Clear();
 			KEYS[0].key_short = 0;
 		}
 		else if(KEYS[1].key_short == 1)
 		{
 			Selt_para++;
-			if(Selt_para >= 2)
+			if(Selt_para >= 4)
 			{
 				Selt_para = 0;
 			}
@@ -122,12 +124,22 @@ void key_proc()
 			{
 				case 0:
 				{
-					Kp++;
+					Kp+=0.5;
 					break;
 				}
 				case 1:
 				{
-					Kd++;
+					Kd+=0.5;
+					break;
+				}
+				case 2:
+				{
+					Kpp+=0.5;
+					break;
+				}
+				case 3:
+				{
+					Kdd+=0.5;
 					break;
 				}
 			}
@@ -139,12 +151,22 @@ void key_proc()
 			{
 				case 0:
 				{
-					Kp--;
+					Kp-=0.5;
 					break;
 				}
 				case 1:
 				{
-					Kd--;
+					Kd-=0.5;
+					break;
+				}
+				case 2:
+				{
+					Kpp-=0.5;
+					break;
+				}
+				case 3:
+				{
+					Kdd-=0.5;
 					break;
 				}
 			}
@@ -194,12 +216,10 @@ int main(void)
   
   // 初始化OLED屏幕
   OLED_Init();
-  
   // 启动右轮的TIM2编码器测速
   HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
   // 启动左轮的TIM3编码器测速
   HAL_TIM_Encoder_Start(&htim3,TIM_CHANNEL_ALL);
-
   // 启动TIM4，20ms触发一次。TIM4的中断回调函数我写在上面一点了，往上翻就能找到了。
   // 用于每20ms触发一次PID
   HAL_TIM_Base_Start_IT(&htim4);
@@ -222,6 +242,7 @@ int main(void)
 	HAL_Delay(50);
   HMC5883L_Init();
 	
+	// MPU6050gz的零漂校准
 	calibrate_gyro();
 	
 /*----------第一题--------------------------------------------------------------------*/
@@ -234,49 +255,77 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		
-		snprintf(Text,30,"R=%.0f   L=%.0f   ",MotorAR.now,MotorBL.now);
-		OLED_ShowString(1, 1, Text);
-		snprintf(Text,30,"%.2f    ", yaw_gyro );
-		OLED_ShowString(2, 1, Text);
-		snprintf(Text,30,"%.2f    ", yaw_Kalman );
-		OLED_ShowString(3, 1, Text);
-		snprintf(Text,30,"%.2f    ", yaw_hmc );
-		OLED_ShowString(4, 1, Text);
+
+//		snprintf(Text,30,"%.2f    ", yaw_gyro );
+//		OLED_ShowString(2, 1, Text);
+//		snprintf(Text,30,"%.2f    ", yaw_Kalman );
+//		OLED_ShowString(3, 1, Text);
+//		snprintf(Text,30,"%.2f    ", yaw_hmc );
+//		OLED_ShowString(4, 1, Text);
 		
 		if(MPUDisp_Flag == 1)
 		{
-//			snprintf(Text,30,"pitch:%.2f ", pitch_Kalman);
-//			OLED_ShowString(2, 1, Text);
-//			snprintf(Text,30,"yaw:%.2f ", yaw_Kalman);
-//			OLED_ShowString(3, 1, Text);
-//			snprintf(Text,30,"roll:%.2f ", roll_Kalman);
-//			OLED_ShowString(4, 1, Text);	
-//			snprintf(Text,30,"total_left=%d ", total_left);
-//		  OLED_ShowString(2, 1, Text);
-//			snprintf(Text,30,"total_right=%d ", total_right);
-//		  OLED_ShowString(3, 1, Text);
-			
+			if(State == 0)
+			{
+				if(Selt_para == 0)
+				{
+					snprintf(Text,30,"Kp=%.2f ", Kp);
+					OLED_ShowStringReverse(1, 1, Text);
+					snprintf(Text,30,"Kd=%.2f ", Kd);
+					OLED_ShowString(2, 1, Text);
+					snprintf(Text,30,"Kpp=%.2f ", Kpp);
+					OLED_ShowString(3, 1, Text);
+					snprintf(Text,30,"Kdd=%.2f ", Kdd);
+					OLED_ShowString(4, 1, Text);
+//						snprintf(Text,30,"gz=%.4f",(float)gz);
+//						OLED_ShowString(3, 1, Text);
+//						snprintf(Text,30,"gz_cal=%.4f",(float)gz-gyro_zero_z);
+//						OLED_ShowString(4, 1, Text);
+				}
+				else if(Selt_para == 1)
+				{
+					snprintf(Text,30,"Kp=%.2f ", Kp);
+					OLED_ShowString(1, 1, Text);
+					snprintf(Text,30,"Kd=%.2f ", Kd);
+					OLED_ShowStringReverse(2, 1, Text);
+					snprintf(Text,30,"Kpp=%.2f ", Kpp);
+					OLED_ShowString(3, 1, Text);
+					snprintf(Text,30,"Kdd=%.2f ", Kdd);
+					OLED_ShowString(4, 1, Text);
+				}
+				else if(Selt_para == 2)
+				{
+					snprintf(Text,30,"Kp=%.2f ", Kp);
+					OLED_ShowString(1, 1, Text);
+					snprintf(Text,30,"Kd=%.2f ", Kd);
+					OLED_ShowString(2, 1, Text);
+					snprintf(Text,30,"Kpp=%.2f ", Kpp);
+					OLED_ShowStringReverse(3, 1, Text);
+					snprintf(Text,30,"Kdd=%.2f ", Kdd);
+					OLED_ShowString(4, 1, Text);
+				}
+				else if(Selt_para == 3)
+				{
+					snprintf(Text,30,"Kp=%.2f ", Kp);
+					OLED_ShowString(1, 1, Text);
+					snprintf(Text,30,"Kd=%.2f ", Kd);
+					OLED_ShowString(2, 1, Text);
+					snprintf(Text,30,"Kpp=%.2f ", Kpp);
+					OLED_ShowString(3, 1, Text);
+					snprintf(Text,30,"Kdd=%.2f ", Kdd);
+					OLED_ShowStringReverse(4, 1, Text);
+				}
+			}
+			else if(State == 1 || State == 2)
+			{
+				snprintf(Text,30,"State = %d   ", State);
+				OLED_ShowString(1, 1, Text);
+				snprintf(Text,30,"L=%.0f   R=%.0f   ",MotorBL.target,MotorAR.target);
+				OLED_ShowString(2, 1, Text);
 
+
+			}
 			
-//			if(State == 0)
-//			{
-//				if(Selt_para == 0)
-//				{
-//					snprintf(Text,30,"Kp=%.2f ", Kp);
-//					OLED_ShowStringReverse(3, 1, Text);
-//					snprintf(Text,30,"Kd=%.2f ", Kd);
-//					OLED_ShowString(4, 1, Text);
-//				}
-//				else if(Selt_para == 1)
-//				{
-//					snprintf(Text,30,"Kp=%.2f ", Kp);
-//					OLED_ShowString(3, 1, Text);
-//					snprintf(Text,30,"Kd=%.2f ", Kd);
-//					OLED_ShowStringReverse(4, 1, Text);
-//				}
-//			}
-//			
 			MPUDisp_Flag = 0;
 			
 		}
@@ -287,11 +336,11 @@ int main(void)
 			MPU6050_GetData();		
 			HMC5883L_GetData(&hmc_x, &hmc_y, &hmc_z);
 			
-			// 通过陀螺仪计算角度，这个*0.005和EXTI的频率有关的，现在EXTI的频率是5ms一次，所以
-			// 这里是*0.005，如果改变了EXTI的频率这里也要变的，EXTI频率的改变方法在MPU6050_Init()里有写
-			roll_gyro += (float)gx / 16.4 * 0.005;
-			pitch_gyro += (float)gy / 16.4 * 0.005;
-			yaw_gyro += ((float)gz - (float)gyro_zero_z) / 16.4 * 0.005;
+			// 通过陀螺仪计算角度，这个*0.005和EXTI的频率有关的，现在EXTI的频率是20ms一次，所以
+			// 这里是*0.02，如果改变了EXTI的频率这里也要变的，EXTI频率的改变方法在MPU6050_Init()里有写
+			roll_gyro += (float)gx / 16.4 * 0.02;
+			pitch_gyro += (float)gy / 16.4 * 0.02;
+			yaw_gyro += ((float)gz - (float)gyro_zero_z) / 16.4 * 0.02;
 			
 			// 计算加速度计角度
 			roll_acc = atan((float)ay/az) * 57.296;
@@ -314,7 +363,7 @@ int main(void)
 /*----------第一题--------------------------------------------------------------------*/
 		if(State == 0)
 		{
-			
+				pid_set_tar_speed(0,0);
 		}
 		
 		if(State == 1)
@@ -335,6 +384,15 @@ int main(void)
 				pid_set_tar_speed(80,80);
 			}
 			
+		}
+		
+		if(State == 2)
+		{
+//			snprintf(Text,30,"O1=%d O2=%d O3=%d", O1,O2,O3); 
+//			OLED_ShowString(3,1,Text);
+//			snprintf(Text,30,"O4=%d O5=%d", O4,O5); 
+//			OLED_ShowString(4,1,Text);
+
 		}
 		
 		key_proc();
