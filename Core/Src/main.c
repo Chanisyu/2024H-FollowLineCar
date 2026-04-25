@@ -1,3 +1,4 @@
+// Hello World！
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -93,7 +94,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if(GPIO_Pin == GPIO_PIN_5)
 	{
-			Data_Flag = 1;
+		Data_Flag = 1;
 	}
 }
 
@@ -105,6 +106,7 @@ void key_proc()
 		if(KEYS[0].key_short == 1)
 		{
 			State = 1;
+			OLED_Clear();
 			KEYS[0].key_short = 0;
 		}
 		else if(KEYS[1].key_short == 1)
@@ -253,8 +255,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//		snprintf(Text,30,"R=%.0f   L=%.0f   ",MotorAR.now,MotorBL.now);
-//		OLED_ShowString(1, 1, Text);
+
 //		snprintf(Text,30,"%.2f    ", yaw_gyro );
 //		OLED_ShowString(2, 1, Text);
 //		snprintf(Text,30,"%.2f    ", yaw_Kalman );
@@ -276,6 +277,10 @@ int main(void)
 					OLED_ShowString(3, 1, Text);
 					snprintf(Text,30,"Kdd=%.2f ", Kdd);
 					OLED_ShowString(4, 1, Text);
+//						snprintf(Text,30,"gz=%.4f",(float)gz);
+//						OLED_ShowString(3, 1, Text);
+//						snprintf(Text,30,"gz_cal=%.4f",(float)gz-gyro_zero_z);
+//						OLED_ShowString(4, 1, Text);
 				}
 				else if(Selt_para == 1)
 				{
@@ -310,6 +315,15 @@ int main(void)
 					snprintf(Text,30,"Kdd=%.2f ", Kdd);
 					OLED_ShowStringReverse(4, 1, Text);
 				}
+			}
+			else if(State == 1 || State == 2)
+			{
+				snprintf(Text,30,"State = %d   ", State);
+				OLED_ShowString(1, 1, Text);
+				snprintf(Text,30,"L=%.0f   R=%.0f   ",MotorBL.target,MotorAR.target);
+				OLED_ShowString(2, 1, Text);
+
+
 			}
 			
 			MPUDisp_Flag = 0;
@@ -349,7 +363,7 @@ int main(void)
 /*----------第一题--------------------------------------------------------------------*/
 		if(State == 0)
 		{
-			
+				pid_set_tar_speed(0,0);
 		}
 		
 		if(State == 1)
@@ -370,6 +384,15 @@ int main(void)
 				pid_set_tar_speed(80,80);
 			}
 			
+		}
+		
+		if(State == 2)
+		{
+//			snprintf(Text,30,"O1=%d O2=%d O3=%d", O1,O2,O3); 
+//			OLED_ShowString(3,1,Text);
+//			snprintf(Text,30,"O4=%d O5=%d", O4,O5); 
+//			OLED_ShowString(4,1,Text);
+
 		}
 		
 		key_proc();

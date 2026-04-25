@@ -122,7 +122,7 @@ void calibrate_gyro(void)
 {
   float sum = 0;
 	volatile int a=0;
-  for(a=0; a<3; a++) 
+  for(a=0; a<50; a++) 
 	{    
 		if(MPU6050_GetData() != HAL_OK)
 		{	
@@ -130,5 +130,5 @@ void calibrate_gyro(void)
 		}
 		sum += gz;
 	}
-	gyro_zero_z = (sum / 3);
+	gyro_zero_z = (sum / 50);
 }
