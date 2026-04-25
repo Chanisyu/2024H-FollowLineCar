@@ -60,13 +60,13 @@ void pid_control()
 		// 3.输入pid控制器计算
 		pid_cal_angle(&angle);
 		// 输出限幅
-		if(angle.out > 5)
+		if(angle.out > 200)
 		{
-			angle.out = 5;
+			angle.out = 200;
 		}
-		if(angle.out < -5)
+		if(angle.out < -200)
 		{
-			angle.out = -5;
+			angle.out = -200;
 		}
 		// 4.应用输出值
 		pid_set_tar_speed(base_speed - angle.out, base_speed + angle.out);
@@ -156,12 +156,13 @@ void pid_cal_angle(pid_t *pid)
 		pid->dout = pid->d * (pid->error[0] - 2 * pid->error[1] + pid->error[2]);
 		pid->out += pid->pout + pid->iout + pid->dout;
 	}
+	// 增加了Kpp
 	else if(pid->pid_mode == POSITION_PID)  // 位置式
 	{
 		pid->pout = pid->p * pid->error[0];
 		pid->iout += pid->i * pid->error[0];
 		pid->dout = pid->d * (pid->error[0] - pid->error[1]);
-		pid->out = pid->pout + pid->iout + pid->dout;
+		pid->out = pid->pout + pid->iout + pid->dout + KddForANG * (float)((float)gz - gyro_zero_z)/16.4f;
 	}
 
 	// 记录前两次偏差

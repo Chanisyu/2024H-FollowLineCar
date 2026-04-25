@@ -72,6 +72,7 @@ uint8_t ANGLOOP = 0;
 // 开始时的直行角度
 int16_t ANGStra;
 HMC5883L_CalibrationResult HMC5883L_Cali_Res;
+float KddForANG = 0;
 
 /* USER CODE END PV */
 
@@ -190,6 +191,63 @@ void key_proc()
 			KEYS[3].key_short = 0;
 		}
 	}
+	if(State == -1)
+	{
+		// 这里复用了State0的参数选择状态变量
+		if(KEYS[1].key_short == 1)
+		{
+			Selt_para++;
+			if(Selt_para >= 3)
+			{
+				Selt_para = 0;
+			}
+			KEYS[1].key_short = 0;
+		}
+		else if(KEYS[2].key_short == 1)
+		{
+			switch(Selt_para)
+			{
+				case 0:
+				{
+					angle.p+=0.5;
+					break;
+				}
+				case 1:
+				{
+					KddForANG+=0.01;
+					break;
+				}
+				case 2:
+				{
+					angle.d+=0.5;
+					break;
+				}
+			}
+			KEYS[2].key_short = 0;
+		}
+		else if(KEYS[3].key_short == 1)
+		{
+			switch(Selt_para)
+			{
+				case 0:
+				{
+					angle.p-=0.5;
+					break;
+				}
+				case 1:
+				{
+					KddForANG-=0.01;
+					break;
+				}
+				case 2:
+				{
+					angle.d-=0.5;
+					break;
+				}
+			}
+			KEYS[3].key_short = 0;
+		}
+	}
 }
 
 /* USER CODE END 0 */
@@ -248,7 +306,7 @@ int main(void)
 	// PID参数的初始化
   pid_Init(&MotorAR,DELTA_PID,10,10,0);
   pid_Init(&MotorBL,DELTA_PID,10,10,0);
-	pid_Init(&angle,POSITION_PID,0.3,0,0.05);
+	pid_Init(&angle,POSITION_PID,1,0,10);
 	
   pid_set_tar_speed(0,0);
   
@@ -281,7 +339,12 @@ int main(void)
 			{
 				snprintf(Text,30,"yaw_hmc=%.3f   ", yaw_hmc);
 				OLED_ShowString(1, 1, Text);
-
+				snprintf(Text,30,"P=%.1f   ", angle.p);
+				OLED_ShowString(2, 1, Text);
+				snprintf(Text,30,"Kdd=%.2f   ", KddForANG);
+				OLED_ShowString(3, 1, Text);
+				snprintf(Text,30,"D=%.1f   ", angle.d);
+				OLED_ShowString(4, 1, Text);
 			}
 			else if(State == 0)
 			{
@@ -375,6 +438,14 @@ int main(void)
 		}
 		
 /*----------第一题--------------------------------------------------------------------*/
+		
+		// 测试角度环
+		if(State == -1)
+		{
+			angle.target = -150;
+			ANGLOOP = 1;
+		}
+		
 		if(State == 0)
 		{
 			pid_set_tar_speed(0,0);
