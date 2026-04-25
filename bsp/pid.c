@@ -162,7 +162,7 @@ void pid_cal_angle(pid_t *pid)
 		pid->pout = pid->p * pid->error[0];
 		pid->iout += pid->i * pid->error[0];
 		pid->dout = pid->d * (pid->error[0] - pid->error[1]);
-		pid->out = pid->pout + pid->iout + pid->dout + KddForANG * (float)((float)gz - gyro_zero_z)/16.4f;
+		pid->out = pid->pout + pid->iout + pid->dout + KddForANG * ( (float)((float)gz - gyro_zero_z)/16.4f ) + KppForANG * pid->error[0]*fabs( pid->error[0] );
 	}
 
 	// 记录前两次偏差

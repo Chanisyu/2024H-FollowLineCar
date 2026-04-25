@@ -41,6 +41,8 @@ extern int8_t State;
 extern uint8_t ANGLOOP;
 extern int16_t ANGStra;
 extern float KddForANG;
+extern float KppForANG;
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

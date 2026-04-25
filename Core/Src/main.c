@@ -73,6 +73,7 @@ uint8_t ANGLOOP = 0;
 int16_t ANGStra;
 HMC5883L_CalibrationResult HMC5883L_Cali_Res;
 float KddForANG = 0;
+float KppForANG = 0;
 
 /* USER CODE END PV */
 
@@ -209,12 +210,12 @@ void key_proc()
 			{
 				case 0:
 				{
-					angle.p+=0.5;
+					angle.p+=0.1;
 					break;
 				}
 				case 1:
 				{
-					KddForANG+=0.01;
+					KppForANG+=0.01;
 					break;
 				}
 				case 2:
@@ -231,12 +232,12 @@ void key_proc()
 			{
 				case 0:
 				{
-					angle.p-=0.5;
+					angle.p-=0.1;
 					break;
 				}
 				case 1:
 				{
-					KddForANG-=0.01;
+					KppForANG-=0.01;
 					break;
 				}
 				case 2:
@@ -306,7 +307,7 @@ int main(void)
 	// PID参数的初始化
   pid_Init(&MotorAR,DELTA_PID,10,10,0);
   pid_Init(&MotorBL,DELTA_PID,10,10,0);
-	pid_Init(&angle,POSITION_PID,1,0,10);
+	pid_Init(&angle,POSITION_PID,0.9,0,18);
 	
   pid_set_tar_speed(0,0);
   
@@ -341,7 +342,7 @@ int main(void)
 				OLED_ShowString(1, 1, Text);
 				snprintf(Text,30,"P=%.1f   ", angle.p);
 				OLED_ShowString(2, 1, Text);
-				snprintf(Text,30,"Kdd=%.2f   ", KddForANG);
+				snprintf(Text,30,"Kpp=%.2f   ", KppForANG);
 				OLED_ShowString(3, 1, Text);
 				snprintf(Text,30,"D=%.1f   ", angle.d);
 				OLED_ShowString(4, 1, Text);
