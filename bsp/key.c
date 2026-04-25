@@ -30,11 +30,11 @@ void key_task()
 					}
 					else if(KEYS[i].key_sta == 1)
 					{
-						if(KEYS[i].key_time >= 20 && KEYS[i].key_time<=1990)
+						if(KEYS[i].key_time >= 20 && KEYS[i].key_time<=990)
 						{
 							KEYS[i].key_short = 1;
 						}
-						else if(KEYS[i].key_time > 1990)
+						else if(KEYS[i].key_time > 990)
 						{
 							KEYS[i].key_long = 1;
 						}

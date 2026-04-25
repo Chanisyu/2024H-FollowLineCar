@@ -37,7 +37,7 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 extern char Text[];
-extern uint8_t State;
+extern int8_t State;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

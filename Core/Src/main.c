@@ -63,7 +63,7 @@ volatile int16_t right_speed;
 volatile int16_t left_speed;
 volatile uint8_t MPUDisp_Flag = 0;
 volatile uint8_t Data_Flag = 0;
-uint8_t State = 0;
+int8_t State = -1;
 uint8_t View = 0;
 uint8_t Selt_para = 0;
 /* USER CODE END PV */
@@ -101,15 +101,25 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 // 按键判断逻辑，负责各个界面下按键的作用逻辑。
 void key_proc()
 {
+	if(KEYS[0].key_short == 1)
+	{
+		State++;
+		if(State >= 1)
+		{
+			State = -1;
+		}
+		OLED_Clear();
+		KEYS[0].key_short = 0;
+	}
+	else if(KEYS[0].key_long == 1)
+	{
+		State = 1;
+		OLED_Clear();
+		KEYS[0].key_long = 0;
+	}
 	if(State == 0)
 	{
-		if(KEYS[0].key_short == 1)
-		{
-			State = 1;
-			OLED_Clear();
-			KEYS[0].key_short = 0;
-		}
-		else if(KEYS[1].key_short == 1)
+		if(KEYS[1].key_short == 1)
 		{
 			Selt_para++;
 			if(Selt_para >= 4)
@@ -255,17 +265,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-//		snprintf(Text,30,"%.2f    ", yaw_gyro );
-//		OLED_ShowString(2, 1, Text);
-//		snprintf(Text,30,"%.2f    ", yaw_Kalman );
-//		OLED_ShowString(3, 1, Text);
-//		snprintf(Text,30,"%.2f    ", yaw_hmc );
-//		OLED_ShowString(4, 1, Text);
-		
 		if(MPUDisp_Flag == 1)
 		{
-			if(State == 0)
+			if(State == -1)
+			{
+				snprintf(Text,30,"yaw_hmc=%.3f   ", yaw_hmc);
+				OLED_ShowString(1, 1, Text);
+
+			}
+			else if(State == 0)
 			{
 				if(Selt_para == 0)
 				{
@@ -277,10 +285,6 @@ int main(void)
 					OLED_ShowString(3, 1, Text);
 					snprintf(Text,30,"Kdd=%.2f ", Kdd);
 					OLED_ShowString(4, 1, Text);
-//						snprintf(Text,30,"gz=%.4f",(float)gz);
-//						OLED_ShowString(3, 1, Text);
-//						snprintf(Text,30,"gz_cal=%.4f",(float)gz-gyro_zero_z);
-//						OLED_ShowString(4, 1, Text);
 				}
 				else if(Selt_para == 1)
 				{
@@ -322,12 +326,9 @@ int main(void)
 				OLED_ShowString(1, 1, Text);
 				snprintf(Text,30,"L=%.0f   R=%.0f   ",MotorBL.target,MotorAR.target);
 				OLED_ShowString(2, 1, Text);
-
-
 			}
 			
 			MPUDisp_Flag = 0;
-			
 		}
 		
 		if(Data_Flag == 1)
@@ -388,11 +389,7 @@ int main(void)
 		
 		if(State == 2)
 		{
-//			snprintf(Text,30,"O1=%d O2=%d O3=%d", O1,O2,O3); 
-//			OLED_ShowString(3,1,Text);
-//			snprintf(Text,30,"O4=%d O5=%d", O4,O5); 
-//			OLED_ShowString(4,1,Text);
-
+			
 		}
 		
 		key_proc();
