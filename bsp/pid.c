@@ -4,6 +4,7 @@
 #include "usart.h"
 #include "gray_track.h"
 #include "mpu6050.h"
+#include "HMC5883L.h"
 
 // 创建结构体实例
 // 速度环结构体
@@ -50,24 +51,26 @@ void pid_set_base_speed(int16_t Speed)
 
 void pid_control()
 {
-//	// 角度环
-//	// 1.设定目标角度
-//	// 2.获取当前角度
-//	angle.now = yaw_Kalman;
-//	// 3.输入pid控制器计算
-//	pid_cal_angle(&angle);
-//	
-//	if(angle.out > 5)
-//	{
-//		angle.out = 5;
-//	}
-//	if(angle.out < -5)
-//	{
-//		angle.out = -5;
-//	}
-//	
-//	// 4.应用输出值
-//	pid_set_tar_speed(base_speed - angle.out, base_speed + angle.out);
+	// 角度环
+	if(ANGLOOP == 1)
+	{
+		// 1.设定目标角度
+		// 2.获取当前角度
+		angle.now = yaw_hmc;
+		// 3.输入pid控制器计算
+		pid_cal_angle(&angle);
+		// 输出限幅
+		if(angle.out > 5)
+		{
+			angle.out = 5;
+		}
+		if(angle.out < -5)
+		{
+			angle.out = -5;
+		}
+		// 4.应用输出值
+		pid_set_tar_speed(base_speed - angle.out, base_speed + angle.out);
+	}
 	
 	// 速度环
 	// 1.设定目标速度

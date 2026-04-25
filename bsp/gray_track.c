@@ -37,7 +37,10 @@ float track_error(void)
 		if(lose_cnt >= 50)
 		{
 			pid_set_tar_speed(0, 0);
-			State = 0;
+			angle.target = ANGStra - 180;
+			total_left = 0;
+			total_right = 0;
+			State = 1;
 			return 0;
 		}
 		return last_err > 0 ? 3 : -3;

@@ -38,6 +38,8 @@ extern "C" {
 /* USER CODE BEGIN ET */
 extern char Text[];
 extern int8_t State;
+extern uint8_t ANGLOOP;
+extern int16_t ANGStra;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

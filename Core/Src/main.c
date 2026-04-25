@@ -68,6 +68,9 @@ int8_t State = -1;
 uint8_t View = 0;
 uint8_t Selt_para = 0;
 
+uint8_t ANGLOOP = 0;
+// 开始时的直行角度
+int16_t ANGStra;
 HMC5883L_CalibrationResult HMC5883L_Cali_Res;
 
 /* USER CODE END PV */
@@ -234,9 +237,6 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
   // 启动左轮的TIM3编码器测速
   HAL_TIM_Encoder_Start(&htim3,TIM_CHANNEL_ALL);
-  // 启动TIM4，20ms触发一次。TIM4的中断回调函数我写在上面一点了，往上翻就能找到了。
-  // 用于每20ms触发一次PID
-  HAL_TIM_Base_Start_IT(&htim4);
   // 蜂鸣器默认关闭
   HAL_GPIO_WritePin(GPIOA,GPIO_PIN_10,GPIO_PIN_SET);
 
@@ -258,8 +258,11 @@ int main(void)
 	
 	// MPU6050gz的零漂校准
 	calibrate_gyro();
+	HMC5883L_Calibration_RunBlocking(&HMC5883L_Cali_Res, 600, 20, App_ReadSample, App_DelayMs, 0);
 	
-	HMC5883L_Calibration_RunBlocking(&HMC5883L_Cali_Res, 300, 20, App_ReadSample, App_DelayMs, 0);
+	// 启动TIM4，20ms触发一次。TIM4的中断回调函数我写在上面一点了，往上翻就能找到了。
+  // 用于每20ms触发一次PID
+  HAL_TIM_Base_Start_IT(&htim4);
 
 	
 /*----------第一题--------------------------------------------------------------------*/
@@ -333,6 +336,8 @@ int main(void)
 				OLED_ShowString(1, 1, Text);
 				snprintf(Text,30,"L=%.0f   R=%.0f   ",MotorBL.target,MotorAR.target);
 				OLED_ShowString(2, 1, Text);
+				snprintf(Text,30,"yaw_hmc=%.3f   ", yaw_hmc);
+				OLED_ShowString(3, 1, Text);
 			}
 			
 			MPUDisp_Flag = 0;
@@ -372,25 +377,29 @@ int main(void)
 /*----------第一题--------------------------------------------------------------------*/
 		if(State == 0)
 		{
-				pid_set_tar_speed(0,0);
+			pid_set_tar_speed(0,0);
+			ANGStra = yaw_hmc;
+			angle.target = ANGStra;
+			
 		}
 		
 		if(State == 1)
 		{
+			ANGLOOP = 1;
 			// 让小车沿着一开始摆放的方向行驶，不使用角度环
 			if( (total_left + total_right)/2 > 7000)
 			{
 				State = 2;
-				pid_set_tar_speed(0,0);
-				
+				// 关闭角度环，启动循迹环
+				ANGLOOP = 0;
 			}
 			else if( (total_left + total_right)/2 > 5500 )
 			{
-				pid_set_tar_speed(20,20);
+				pid_set_base_speed(5);
 			}
 			else
 			{
-				pid_set_tar_speed(80,80);
+				pid_set_base_speed(15);
 			}
 			
 		}
