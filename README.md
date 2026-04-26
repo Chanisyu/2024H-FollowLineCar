@@ -35,7 +35,7 @@ VCC -> 板载3v3
 GND -> 板载GND
 
 ### MPU6050
-INT -> B7
+INT -> B5
 SCL -> B10
 SDA -> B11
 XCL -> HMC5883L-SCL
