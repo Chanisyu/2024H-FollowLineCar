@@ -39,6 +39,7 @@
 #include "key.h"
 #include "gray_track.h"
 #include "HMC5883L_Calibration.h"
+#include "vofa.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -369,7 +370,7 @@ int main(void)
 	
 	// MPU6050gz的零漂校准
 	calibrate_gyro();
-	HMC5883L_Calibration_RunBlocking(&HMC5883L_Cali_Res, 600, 20, App_ReadSample, App_DelayMs, 0);
+	// HMC5883L_Calibration_RunBlocking(&HMC5883L_Cali_Res, 600, 20, App_ReadSample, App_DelayMs, 0);
 	
 	// 启动TIM4，20ms触发一次。TIM4的中断回调函数我写在上面一点了，往上翻就能找到了。
   // 用于每20ms触发一次PID
@@ -393,7 +394,11 @@ int main(void)
 		// 测试角度环
 		if(State == -1)
 		{
-			
+			pid_set_tar_speed(50,50);
+			snprintf(Text,30,"L=%.0f   R=%.0f   ",MotorBL.target,MotorAR.target);
+			OLED_ShowString(2, 1, Text);
+			snprintf(Text,30,"L=%.0f   R=%.0f   ",MotorBL.now,MotorAR.now);
+			OLED_ShowString(3, 1, Text);
 		}
 		
 		if(State == 0)
