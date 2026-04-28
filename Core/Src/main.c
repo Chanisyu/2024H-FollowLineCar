@@ -90,6 +90,7 @@ void SystemClock_Config(void);
 // 定时器中断，每20ms触发一次，用于控制pid和按键扫描。
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+	
 	if(htim->Instance == TIM4)
 	{	
 		pid_control();
@@ -101,6 +102,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 // 外部中断，由MPU6050的INT引脚接到PB5，再开启外部中断，20ms触发一次，50Hz。
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
+	
+	
 	if(GPIO_Pin == GPIO_PIN_5)
 	{
 		Data_Flag = 1;
@@ -194,6 +197,112 @@ void key_proc()
 	}
 }
 
+
+// OLED显示逻辑，负责OLED显示内容
+void OLED_proc()
+{
+	if(MPUDisp_Flag == 0) return;
+	
+	if(State == -1)
+	{
+		snprintf(Text,30,"yaw_hmc=%.3f   ", yaw_hmc);
+		OLED_ShowString(1, 1, Text);
+	}
+	else if(State == 0)
+	{
+		if(Selt_para == 0)
+		{
+			snprintf(Text,30,"Kp=%.2f ", Kp);
+			OLED_ShowStringReverse(1, 1, Text);
+			snprintf(Text,30,"Kd=%.2f ", Kd);
+			OLED_ShowString(2, 1, Text);
+			snprintf(Text,30,"Kpp=%.2f ", Kpp);
+			OLED_ShowString(3, 1, Text);
+			snprintf(Text,30,"Kdd=%.2f ", Kdd);
+			OLED_ShowString(4, 1, Text);
+		}
+		else if(Selt_para == 1)
+		{
+			snprintf(Text,30,"Kp=%.2f ", Kp);
+			OLED_ShowString(1, 1, Text);
+			snprintf(Text,30,"Kd=%.2f ", Kd);
+			OLED_ShowStringReverse(2, 1, Text);
+			snprintf(Text,30,"Kpp=%.2f ", Kpp);
+			OLED_ShowString(3, 1, Text);
+			snprintf(Text,30,"Kdd=%.2f ", Kdd);
+			OLED_ShowString(4, 1, Text);
+		}
+		else if(Selt_para == 2)
+		{
+			snprintf(Text,30,"Kp=%.2f ", Kp);
+			OLED_ShowString(1, 1, Text);
+			snprintf(Text,30,"Kd=%.2f ", Kd);
+			OLED_ShowString(2, 1, Text);
+			snprintf(Text,30,"Kpp=%.2f ", Kpp);
+			OLED_ShowStringReverse(3, 1, Text);
+			snprintf(Text,30,"Kdd=%.2f ", Kdd);
+			OLED_ShowString(4, 1, Text);
+		}
+		else if(Selt_para == 3)
+		{
+			snprintf(Text,30,"Kp=%.2f ", Kp);
+			OLED_ShowString(1, 1, Text);
+			snprintf(Text,30,"Kd=%.2f ", Kd);
+			OLED_ShowString(2, 1, Text);
+			snprintf(Text,30,"Kpp=%.2f ", Kpp);
+			OLED_ShowString(3, 1, Text);
+			snprintf(Text,30,"Kdd=%.2f ", Kdd);
+			OLED_ShowStringReverse(4, 1, Text);
+		}
+	}
+	else if(State == 1 || State == 2)
+	{
+		snprintf(Text,30,"State = %d   ", State);
+		OLED_ShowString(1, 1, Text);
+		snprintf(Text,30,"L=%.0f   R=%.0f   ",MotorBL.target,MotorAR.target);
+		OLED_ShowString(2, 1, Text);
+		snprintf(Text,30,"yaw_hmc=%.3f   ", yaw_hmc);
+		OLED_ShowString(3, 1, Text);
+	}
+	
+	MPUDisp_Flag = 0;
+
+}
+	
+
+// 数据计算逻辑，负责数据计算
+void Data_proc()
+{
+	if(Data_Flag == 0) return;
+
+	// 获取原始数据
+	MPU6050_GetData();		
+	HMC5883L_GetData(&hmc_x, &hmc_y, &hmc_z);
+	
+	// 通过陀螺仪计算角度，这个*0.005和EXTI的频率有关的，现在EXTI的频率是20ms一次，所以
+	// 这里是*0.02，如果改变了EXTI的频率这里也要变的，EXTI频率的改变方法在MPU6050_Init()里有写
+	roll_gyro += (float)gx / 16.4 * 0.02;
+	pitch_gyro += (float)gy / 16.4 * 0.02;
+	yaw_gyro += ((float)gz - (float)gyro_zero_z) / 16.4 * 0.02;
+	
+	// 计算加速度计角度
+	roll_acc = atan((float)ay/az) * 57.296;
+	pitch_acc = - atan((float)ax/az) * 57.296;
+	yaw_acc = atan((float)ay/ax) * 57.296;
+	
+	// 计算磁力偏航角
+	hmc_x_cal = ((float)hmc_x - HMC5883L_Cali_Res.offset_x) * HMC5883L_Cali_Res.scale_x;
+	hmc_y_cal = ((float)hmc_y - HMC5883L_Cali_Res.offset_y) * HMC5883L_Cali_Res.scale_y;
+	
+	yaw_hmc = atan2f(hmc_y_cal, hmc_x_cal)*57.296f;		
+	
+	// 卡尔曼滤波融合角度		
+	roll_Kalman = Kalman_Filter(&KF_Roll, roll_acc, (float)gx / 16.4 );
+	pitch_Kalman = Kalman_Filter(&KF_Pitch, pitch_acc, (float)gy / 16.4 );
+	yaw_Kalman = Kalman_Filter(&KF_Yaw, yaw_hmc, ((float)gz - (float)gyro_zero_z) / 16.4 );
+	
+	Data_Flag = 0;
+}
 /* USER CODE END 0 */
 
 /**
@@ -277,103 +386,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		if(MPUDisp_Flag == 1)
-		{
-			if(State == -1)
-			{
-				snprintf(Text,30,"yaw_hmc=%.3f   ", yaw_hmc);
-				OLED_ShowString(1, 1, Text);
-			}
-			else if(State == 0)
-			{
-				if(Selt_para == 0)
-				{
-					snprintf(Text,30,"Kp=%.2f ", Kp);
-					OLED_ShowStringReverse(1, 1, Text);
-					snprintf(Text,30,"Kd=%.2f ", Kd);
-					OLED_ShowString(2, 1, Text);
-					snprintf(Text,30,"Kpp=%.2f ", Kpp);
-					OLED_ShowString(3, 1, Text);
-					snprintf(Text,30,"Kdd=%.2f ", Kdd);
-					OLED_ShowString(4, 1, Text);
-				}
-				else if(Selt_para == 1)
-				{
-					snprintf(Text,30,"Kp=%.2f ", Kp);
-					OLED_ShowString(1, 1, Text);
-					snprintf(Text,30,"Kd=%.2f ", Kd);
-					OLED_ShowStringReverse(2, 1, Text);
-					snprintf(Text,30,"Kpp=%.2f ", Kpp);
-					OLED_ShowString(3, 1, Text);
-					snprintf(Text,30,"Kdd=%.2f ", Kdd);
-					OLED_ShowString(4, 1, Text);
-				}
-				else if(Selt_para == 2)
-				{
-					snprintf(Text,30,"Kp=%.2f ", Kp);
-					OLED_ShowString(1, 1, Text);
-					snprintf(Text,30,"Kd=%.2f ", Kd);
-					OLED_ShowString(2, 1, Text);
-					snprintf(Text,30,"Kpp=%.2f ", Kpp);
-					OLED_ShowStringReverse(3, 1, Text);
-					snprintf(Text,30,"Kdd=%.2f ", Kdd);
-					OLED_ShowString(4, 1, Text);
-				}
-				else if(Selt_para == 3)
-				{
-					snprintf(Text,30,"Kp=%.2f ", Kp);
-					OLED_ShowString(1, 1, Text);
-					snprintf(Text,30,"Kd=%.2f ", Kd);
-					OLED_ShowString(2, 1, Text);
-					snprintf(Text,30,"Kpp=%.2f ", Kpp);
-					OLED_ShowString(3, 1, Text);
-					snprintf(Text,30,"Kdd=%.2f ", Kdd);
-					OLED_ShowStringReverse(4, 1, Text);
-				}
-			}
-			else if(State == 1 || State == 2)
-			{
-				snprintf(Text,30,"State = %d   ", State);
-				OLED_ShowString(1, 1, Text);
-				snprintf(Text,30,"L=%.0f   R=%.0f   ",MotorBL.target,MotorAR.target);
-				OLED_ShowString(2, 1, Text);
-				snprintf(Text,30,"yaw_hmc=%.3f   ", yaw_hmc);
-				OLED_ShowString(3, 1, Text);
-			}
-			
-			MPUDisp_Flag = 0;
-		}
-		
-		if(Data_Flag == 1)
-		{
-			// 获取原始数据
-			MPU6050_GetData();		
-			HMC5883L_GetData(&hmc_x, &hmc_y, &hmc_z);
-			
-			// 通过陀螺仪计算角度，这个*0.005和EXTI的频率有关的，现在EXTI的频率是20ms一次，所以
-			// 这里是*0.02，如果改变了EXTI的频率这里也要变的，EXTI频率的改变方法在MPU6050_Init()里有写
-			roll_gyro += (float)gx / 16.4 * 0.02;
-			pitch_gyro += (float)gy / 16.4 * 0.02;
-			yaw_gyro += ((float)gz - (float)gyro_zero_z) / 16.4 * 0.02;
-			
-			// 计算加速度计角度
-			roll_acc = atan((float)ay/az) * 57.296;
-			pitch_acc = - atan((float)ax/az) * 57.296;
-			yaw_acc = atan((float)ay/ax) * 57.296;
-			
-			// 计算磁力偏航角
-			hmc_x_cal = ((float)hmc_x - HMC5883L_Cali_Res.offset_x) * HMC5883L_Cali_Res.scale_x;
-			hmc_y_cal = ((float)hmc_y - HMC5883L_Cali_Res.offset_y) * HMC5883L_Cali_Res.scale_y;
-			
-			yaw_hmc = atan2f(hmc_y_cal, hmc_x_cal)*57.296f;		
-			
-			// 卡尔曼滤波融合角度		
-			roll_Kalman = Kalman_Filter(&KF_Roll, roll_acc, (float)gx / 16.4 );
-			pitch_Kalman = Kalman_Filter(&KF_Pitch, pitch_acc, (float)gy / 16.4 );
-			yaw_Kalman = Kalman_Filter(&KF_Yaw, yaw_hmc, ((float)gz - (float)gyro_zero_z) / 16.4 );
-			
-			Data_Flag = 0;
-		}
+
 		
 /*----------第一题--------------------------------------------------------------------*/
 		

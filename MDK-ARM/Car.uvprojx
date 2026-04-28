@@ -835,6 +835,16 @@
               <FileType>5</FileType>
               <FilePath>..\bsp\HMC5883L_Calibration.h</FilePath>
             </File>
+            <File>
+              <FileName>vofa.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\vofa.c</FilePath>
+            </File>
+            <File>
+              <FileName>vofa.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\bsp\vofa.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
