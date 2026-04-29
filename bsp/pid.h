@@ -25,7 +25,7 @@ void pid_cal_motor(pid_t *pid);
 void pid_cal_angle(pid_t *pid);
 void pid_Init(pid_t *pid ,uint8_t Mode ,float p ,float i ,float d);
 void pid_control();
-void pid_set_tar_speed(int16_t spdAR ,int16_t spdBL);
+void pid_set_tar_speed(float spdAR ,float spdBL);
 void pidout_limit(pid_t *pid);
 void pid_set_base_speed(int16_t Speed);
 

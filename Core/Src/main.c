@@ -206,8 +206,8 @@ void OLED_proc()
 	
 	if(State == -1)
 	{
-		snprintf(Text,30,"yaw_hmc=%.3f   ", yaw_hmc);
-		OLED_ShowString(1, 1, Text);
+//		snprintf(Text,30,"yaw_hmc=%.3f   ", yaw_hmc);
+//		OLED_ShowString(1, 1, Text);
 	}
 	else if(State == 0)
 	{
@@ -386,8 +386,7 @@ int main(void)
 	VOFA_Init(&huart1);
 	
 /*----------第一题--------------------------------------------------------------------*/
-		
-		
+	pid_set_tar_speed(50,50);
 /*------------------------------------------------------------------------------------*/
   /* USER CODE END 2 */
 
@@ -404,12 +403,14 @@ int main(void)
 		// 测试角度环
 		if(State == -1)
 		{
-			pid_set_tar_speed(50,50);
+			snprintf(Text,30,"P:%.1f   I:%.1f   ",MotorBL.p, MotorBL.i);
+			OLED_ShowString(1, 1, Text);
 			snprintf(Text,30,"L=%.1f R=%.1f ",MotorBL.target,MotorAR.target);
 			OLED_ShowString(2, 1, Text);
 		  snprintf(Text,30,"L=%.1f R=%.1f",MotorBL.now,MotorAR.now);
 		  OLED_ShowString(3, 1, Text);
-
+			snprintf(Text,30,"D:%.1f    ", MotorBL.d );
+			OLED_ShowString(4, 1, Text);
 		}
 		
 		if(State == 0)

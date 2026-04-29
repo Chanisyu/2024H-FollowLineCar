@@ -38,7 +38,7 @@ void pid_Init(pid_t *pid ,uint8_t Mode ,float p ,float i ,float d)
 	pid->d = d;
 }
 
-void pid_set_tar_speed(int16_t spdAR ,int16_t spdBL)
+void pid_set_tar_speed(float spdAR ,float spdBL)
 {
 	MotorAR.target = spdAR;
 	MotorBL.target = spdBL;
