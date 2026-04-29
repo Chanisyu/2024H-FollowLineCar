@@ -1,4 +1,3 @@
-// Hello World！
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -65,6 +64,7 @@ volatile int16_t right_speed;
 volatile int16_t left_speed;
 volatile uint8_t MPUDisp_Flag = 0;
 volatile uint8_t Data_Flag = 0;
+volatile uint8_t VOFA_Flag = 0;
 int8_t State = -1;
 uint8_t View = 0;
 uint8_t Selt_para = 0;
@@ -75,7 +75,6 @@ int16_t ANGStra;
 HMC5883L_CalibrationResult HMC5883L_Cali_Res;
 float KddForANG = 0;
 float KppForANG = 0;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -97,6 +96,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		pid_control();
 		key_task();
 		MPUDisp_Flag = 1;
+		VOFA_Flag = 1;
 	}
 }
 
@@ -304,6 +304,13 @@ void Data_proc()
 	
 	Data_Flag = 0;
 }
+// 发送调试数据给VOFA上位机
+void VOFA_proc()
+{
+	if(VOFA_Flag == 0) return;
+	VOFA_SendSpeedLoop(MotorBL.target,MotorBL.now);
+	VOFA_Flag = 0;
+}
 /* USER CODE END 0 */
 
 /**
@@ -376,6 +383,7 @@ int main(void)
   // 用于每20ms触发一次PID
   HAL_TIM_Base_Start_IT(&htim4);
 
+	VOFA_Init(&huart1);
 	
 /*----------第一题--------------------------------------------------------------------*/
 		
@@ -387,7 +395,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
+		OLED_proc();
+		Data_proc();
+		VOFA_proc();
 		
 /*----------第一题--------------------------------------------------------------------*/
 		
@@ -395,10 +405,11 @@ int main(void)
 		if(State == -1)
 		{
 			pid_set_tar_speed(50,50);
-			snprintf(Text,30,"L=%.0f   R=%.0f   ",MotorBL.target,MotorAR.target);
+			snprintf(Text,30,"L=%.1f R=%.1f ",MotorBL.target,MotorAR.target);
 			OLED_ShowString(2, 1, Text);
-			snprintf(Text,30,"L=%.0f   R=%.0f   ",MotorBL.now,MotorAR.now);
-			OLED_ShowString(3, 1, Text);
+		  snprintf(Text,30,"L=%.1f R=%.1f",MotorBL.now,MotorAR.now);
+		  OLED_ShowString(3, 1, Text);
+
 		}
 		
 		if(State == 0)

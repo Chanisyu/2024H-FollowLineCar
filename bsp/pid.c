@@ -8,27 +8,27 @@
 
 // 创建结构体实例
 // 速度环结构体
-pid_t MotorAR;
-pid_t MotorBL;
+volatile pid_t MotorAR;
+volatile pid_t MotorBL;
 // 角度环结构体
 pid_t angle;
 
 volatile int16_t base_speed;
 
-void datavision_send()  // 上位机波形发送函数
-{
-    // 数据包头
-	HAL_UART_Transmit(&huart1,(uint8_t[]){0x03},1,100);
-	HAL_UART_Transmit(&huart1,(uint8_t[]){0xfc},1,100);
-	
-    // 发送数据
-	HAL_UART_Transmit(&huart1,(uint8_t[]){(uint8_t)MotorAR.target},1,100);
-	HAL_UART_Transmit(&huart1,(uint8_t[]){(uint8_t)MotorAR.now},1,100);
-	
-    // 数据包尾
-	HAL_UART_Transmit(&huart1,(uint8_t[]){0xfc},1,100);
-	HAL_UART_Transmit(&huart1,(uint8_t[]){0x03},1,100);
-}
+//void datavision_send()  // 上位机波形发送函数
+//{
+//    // 数据包头
+//	HAL_UART_Transmit(&huart1,(uint8_t[]){0x03},1,100);
+//	HAL_UART_Transmit(&huart1,(uint8_t[]){0xfc},1,100);
+//	
+//    // 发送数据
+//	HAL_UART_Transmit(&huart1,(uint8_t[]){(uint8_t)MotorAR.target},1,100);
+//	HAL_UART_Transmit(&huart1,(uint8_t[]){(uint8_t)MotorAR.now},1,100);
+//	
+//    // 数据包尾
+//	HAL_UART_Transmit(&huart1,(uint8_t[]){0xfc},1,100);
+//	HAL_UART_Transmit(&huart1,(uint8_t[]){0x03},1,100);
+//}
 
 void pid_Init(pid_t *pid ,uint8_t Mode ,float p ,float i ,float d)
 {
@@ -100,7 +100,7 @@ void pid_control()
 	else	{MotorBL_set(-MotorBL.out,0);}
 	
 	// 5.给上位机发送数据
-	datavision_send();
+	// datavision_send();
 }
 
 void pid_cal_motor(pid_t *pid)

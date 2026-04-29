@@ -30,8 +30,8 @@ void pidout_limit(pid_t *pid);
 void pid_set_base_speed(int16_t Speed);
 
 
-extern pid_t MotorAR;
-extern pid_t MotorBL;
+extern volatile pid_t MotorAR;
+extern volatile pid_t MotorBL;
 extern pid_t angle;
 extern volatile int16_t base_speed;
 
