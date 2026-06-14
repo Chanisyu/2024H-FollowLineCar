@@ -37,13 +37,13 @@ HAL_StatusTypeDef HMC5883L_Write(uint8_t addr, uint8_t dat)
 
 HAL_StatusTypeDef HMC5883L_Read(uint8_t addr, uint8_t *dat)
 {
-	    return HAL_I2C_Mem_Read(&hi2c2,
-                            HMC5883L_ADDR,
-                            addr,
-                            I2C_MEMADD_SIZE_8BIT,
-                            dat,
-                            1,
-                            10);
+  return HAL_I2C_Mem_Read(&hi2c2,
+													HMC5883L_ADDR,
+													addr,
+													I2C_MEMADD_SIZE_8BIT,
+													dat,
+													1,
+													10);
 }
 
 HAL_StatusTypeDef HMC5883L_ReadBytes(uint8_t addr, uint8_t *buf, uint16_t len)

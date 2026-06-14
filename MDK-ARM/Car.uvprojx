@@ -845,6 +845,16 @@
               <FileType>5</FileType>
               <FilePath>..\bsp\vofa.h</FilePath>
             </File>
+            <File>
+              <FileName>my_main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\my_main.c</FilePath>
+            </File>
+            <File>
+              <FileName>my_main.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\bsp\my_main.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

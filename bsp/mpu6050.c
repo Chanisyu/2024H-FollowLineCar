@@ -1,6 +1,37 @@
 #include "mpu6050.h"
 #include "i2c.h"
 
+/*
+1.  ax、ay、az，MPU6050 加速度计三轴原始值，在MPU6050模块里定义和修改。
+
+2.  gx、gy、gz，MPU6050 陀螺仪三轴原始值，在MPU6050模块里定义和修改。
+
+3.  gyro_zero_z，Z 轴陀螺仪零漂平均值，用来修正 gz。在MPU6050里的零漂校准函数被修改，这个函数会在初始被调用。
+
+4. roll_gyro,  pitch_gyro,  yaw_gyro，只靠陀螺仪积分得到的姿态角。陀螺仪积分的特点：短时间很灵敏、很平滑。长时间会漂移，
+因为一点点零漂会被不断积分放大。yaw_gyro 理论上可以表示偏航角，但会随时间慢慢跑偏。
+在mpu6050模块里定义，在main里面的数据计算函数里计算。优点是短时间响应快，缺点是长时间零漂。
+
+5. roll_acc, pitch_acc, yaw_acc，由加速度计粗略计算出来的角度。roll_acc 有物理意义。
+pitch_acc 有物理意义。yaw_acc 这个写法数学上能算出一个角，
+但作为真实偏航角并不可靠。在mpu6050模块里定义，在main里面的数据计算函数里计算。优点是不会零漂，缺点是运动激烈的时候会有扰动，不准。
+
+6. hmc_x, hmc_y, hmc_z，HMC5883L 三轴磁力计原始值。在HMC5883L里被定义，在main里面的数据计算函数里计算。
+
+7. hmc_x_cal, hmc_y_cal, hmc_z_cal，校准后的磁力计值。在HMC5883L里被定义，在main里面的数据计算函数里计算。
+
+8. yaw_hmc，由 atan2f(hmc_y_cal, hmc_x_cal) 算出的磁力计航向角。在HMC5883L里被定义，在main里面的数据计算函数里计算。
+
+9. HMC5883L_Cali_Res，储存校准结果的结构体。HMC5883L 校准结果，包含 offset 和 scale。
+在HMC5883L_Calibration里被定义，在HMC5883L_Calibration里定义的校准函数里函数里计算。
+
+10.  offset_x/y/z	三轴偏移量，用来修正硬铁干扰。scale_x/y/z	三轴缩放系数，用来修正软铁/轴向比例差异。
+
+11. 若没有校准，全局 HMC5883L_Cali_Res 默认全是 0。这样 scale_x/scale_y 也是 0，hmc_x_cal/hmc_y_cal 会被算成 0，yaw_hmc 很可能失去实际意义。
+除非你后面改代码给它赋过校准参数。
+*/
+
+
 // 这些是原始数据
 int16_t ax, ay, az, gx, gy, gz;
 // 这些是要通过计算算出来的具体数据

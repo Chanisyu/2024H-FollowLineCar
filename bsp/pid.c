@@ -6,29 +6,16 @@
 #include "mpu6050.h"
 #include "HMC5883L.h"
 
-// 创建结构体实例
+/**** 创建结构体实例 ****/
+
 // 速度环结构体
 volatile pid_t MotorAR;
 volatile pid_t MotorBL;
 // 角度环结构体
 pid_t angle;
 
-volatile int16_t base_speed;
 
-//void datavision_send()  // 上位机波形发送函数
-//{
-//    // 数据包头
-//	HAL_UART_Transmit(&huart1,(uint8_t[]){0x03},1,100);
-//	HAL_UART_Transmit(&huart1,(uint8_t[]){0xfc},1,100);
-//	
-//    // 发送数据
-//	HAL_UART_Transmit(&huart1,(uint8_t[]){(uint8_t)MotorAR.target},1,100);
-//	HAL_UART_Transmit(&huart1,(uint8_t[]){(uint8_t)MotorAR.now},1,100);
-//	
-//    // 数据包尾
-//	HAL_UART_Transmit(&huart1,(uint8_t[]){0xfc},1,100);
-//	HAL_UART_Transmit(&huart1,(uint8_t[]){0x03},1,100);
-//}
+volatile int16_t base_speed;
 
 void pid_Init(pid_t *pid ,uint8_t Mode ,float p ,float i ,float d)
 {
@@ -79,6 +66,7 @@ void pid_control()
 		track();
 	}
 	// 2.获取当前速度
+	// TODO：左右轮的速度变量是在这里赋值的，但是这里是速度环的计算逻辑，是不是把这个逻辑移到别的地方会好一些？
 	MotorAR.now = (int16_t)(__HAL_TIM_GET_COUNTER(&htim2));
 	__HAL_TIM_SET_COUNTER(&htim2,0);
 	total_right += (uint32_t)MotorAR.now;
@@ -98,11 +86,9 @@ void pid_control()
 	else	{MotorAR_set(-MotorAR.out,0);}
 	if(MotorBL.out >= 0)	{MotorBL_set(MotorBL.out,1);}
 	else	{MotorBL_set(-MotorBL.out,0);}
-	
-	// 5.给上位机发送数据
-	// datavision_send();
 }
 
+/**** 用于速度环的pid计算函数 ****/
 void pid_cal_motor(pid_t *pid)
 {
 	// 计算当前偏差
@@ -126,9 +112,9 @@ void pid_cal_motor(pid_t *pid)
 	// 记录前两次偏差
 	pid->error[2] = pid->error[1];
 	pid->error[1] = pid->error[0];
-	
 }
 
+/**** 输出限幅函数 ****/
 void pidout_limit(pid_t *pid)
 {
 		// 输出限幅
@@ -138,7 +124,8 @@ void pidout_limit(pid_t *pid)
 		pid->out=-20000;
 }
 
-// 角度专用，处理了角度跳变问题
+/**** 用于角度环的pid计算函数，处理了角度跳变问题，增加了Kdd和Kpp参数，
+      但是没有把Kdd和Kpp参数写进结构体后，TODO：测试完成后可以把Kpp和Kdd写进结构体。****/
 void pid_cal_angle(pid_t *pid)
 {
 	// 计算当前偏差

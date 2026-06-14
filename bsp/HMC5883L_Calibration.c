@@ -392,6 +392,43 @@ HMC5883L_CalibStatus HMC5883L_Calibration_Generate(const HMC5883L_CalibrationCol
  * ----------------------------------------------------------------------------
  * 作用：
  *     自动完成整套阻塞式校准流程。
+ *
+ * 参数说明：
+ * - result:
+ *     输出参数。
+ *     函数校准成功后，会把计算得到的 offset_x/y/z 和 scale_x/y/z
+ *     写入这个结构体，后续可以用它修正新的磁力计原始数据。
+ *     这个参数不能为 0。
+ *
+ * - sample_count:
+ *     采样总次数。
+ *     函数会连续读取 sample_count 组 HMC5883L 原始三轴数据，
+ *     再根据这些样本的最大值和最小值计算校准参数。
+ *     这个值必须大于 0。
+ *
+ * - sample_delay_ms:
+ *     两次采样之间的等待时间，单位是毫秒。
+ *     例如 sample_count 为 300、sample_delay_ms 为 20 时，
+ *     整个采样过程大约持续 300 * 20ms = 6s。
+ *     如果这个值为 0，函数会尽可能连续采样，不调用 delay_ms_fn。
+ *
+ * - read_sample_fn:
+ *     读取一组磁力计原始数据的函数指针。
+ *     本函数不直接绑定具体的 HMC5883L 读取实现，而是通过这个回调函数
+ *     获取 raw_x、raw_y、raw_z，这样校准模块可以保持低耦合。
+ *     这个参数不能为 0。
+ *
+ * - delay_ms_fn:
+ *     毫秒延时函数指针。
+ *     当 sample_delay_ms 大于 0 时，函数每采完一组数据后会调用它等待。
+ *     如果 sample_delay_ms 大于 0，这个参数不能为 0；
+ *     如果 sample_delay_ms 等于 0，这个参数可以为 0。
+ *
+ * - user_ctx:
+ *     用户自定义上下文指针。
+ *     本函数不会直接使用它，只会原样传给 read_sample_fn 和 delay_ms_fn。
+ *     如果回调函数需要访问某个外部对象，可以通过它传入；
+ *     如果不需要，传 0 即可。
  */
 HMC5883L_CalibStatus HMC5883L_Calibration_RunBlocking(HMC5883L_CalibrationResult *result,
                                                       uint16_t sample_count,

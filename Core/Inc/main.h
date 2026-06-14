@@ -31,17 +31,11 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "my_main.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-extern char Text[];
-extern int8_t State;
-extern uint8_t ANGLOOP;
-extern int16_t ANGStra;
-extern float KddForANG;
-extern float KppForANG;
 
 /* USER CODE END ET */
 
