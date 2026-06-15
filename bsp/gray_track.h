@@ -2,13 +2,22 @@
 #define __gray_track_h_
 #include "main.h"
 
-#define O1 HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_5)
-#define O2 HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_4)
-#define O3 HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_3)
-#define O4 HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_2)
-#define O5 HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_0)
+// 推挽输出
+#define GRAY_CLK_PORT GPIOA
+#define GRAY_CLK_PIN  GPIO_PIN_3
+// 输入模式
+#define GRAY_DAT_PORT GPIOA
+#define GRAY_DAT_PIN  GPIO_PIN_4
 
-// 请把上述引脚配置为输入模式
+#define O1 ((gray>>0)&1)
+#define O2 ((gray>>1)&1)
+#define O3 ((gray>>2)&1)
+#define O4 ((gray>>3)&1)
+#define O5 ((gray>>4)&1)
+#define O6 ((gray>>5)&1)
+#define O7 ((gray>>6)&1)
+#define O8 ((gray>>7)&1)
+
 void track(void);
 
 extern float Kp;

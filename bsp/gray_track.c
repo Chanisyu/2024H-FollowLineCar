@@ -8,23 +8,58 @@
 float last_err = 0;
 uint16_t lose_cnt = 0;
 
-float Kp = 14;
-float Kd = 2;
-float Kpp = 1.5;
-float Kdd = 0.5;
+float Kp = 6;
+float Kd = 0;
+float Kpp = 0.3;
+float Kdd = 0;
+
+static void gray_delay_short(void)
+{
+	for (volatile int i = 0; i < 100; i++) {
+		__NOP();
+	}
+}
+
+uint8_t gray_board_read(void)
+{
+	uint8_t value = 0;
+
+	HAL_GPIO_WritePin(GRAY_CLK_PORT, GRAY_CLK_PIN, GPIO_PIN_RESET);
+
+	for (uint8_t i = 0; i < 8; i++) 
+	{
+		HAL_GPIO_WritePin(GRAY_CLK_PORT, GRAY_CLK_PIN, GPIO_PIN_SET);
+		gray_delay_short();
+
+		if (HAL_GPIO_ReadPin(GRAY_DAT_PORT, GRAY_DAT_PIN) == GPIO_PIN_SET)
+		{
+			value |= (1u << i);
+		}
+
+		HAL_GPIO_WritePin(GRAY_CLK_PORT, GRAY_CLK_PIN, GPIO_PIN_RESET);
+		gray_delay_short();
+	}
+
+	return value;
+}
 
 // 通过灰度传感器计算error
 // TODO:这个地方要不要把循迹环也封装成一个结构体那样
 float track_error(void)
 {		
+	uint8_t gray = gray_board_read();
+	
 	float sum = 0;
 	int cnt = 0;
 
-	if(O1 == 0) { sum -= 1.5; cnt++; }
-	if(O2 == 0) { sum -= 0.3; cnt++; }
-	if(O3 == 0) { cnt++; }
-	if(O4 == 0) { sum += 0.3; cnt++; }
-	if(O5 == 0) { sum += 1.5; cnt++; }
+	if(O1 == 0) { sum -= 3.0; cnt++; }
+	if(O2 == 0) { sum -= 2.0; cnt++; }
+	if(O3 == 0) { sum -= 1.0; cnt++; }
+	if(O4 == 0) { sum -= 0.3; cnt++; }
+	if(O5 == 0) { sum += 0.3; cnt++; }
+	if(O6 == 0) { sum += 1.0; cnt++; }
+	if(O7 == 0) { sum += 2.0; cnt++; }
+	if(O8 == 0) { sum += 3.0; cnt++; }
 
 	// 丢线处理
 	if(cnt == 0)
@@ -36,12 +71,12 @@ float track_error(void)
 		{
 			// 先停车
 			pid_set_tar_speed(0, 0);
-			// 把速度环的目标角度设置为初始状态的反方向，希望以此让小车出弯后直行
-			angle.target = ANGStra - 180;
-			// 重置左右轮累计距离
-			total_left = 0;
-			total_right = 0;
-			State = 1;
+//			// 把速度环的目标角度设置为初始状态的反方向，希望以此让小车出弯后直行
+//			angle.target = ANGStra - 180;
+//			// 重置左右轮累计距离
+//			total_left = 0;
+//			total_right = 0;
+//			State = 1;
 			return 0;
 		}
 		return last_err > 0 ? 3 : -3;

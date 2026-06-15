@@ -82,7 +82,7 @@ void loop()
 	
 	if(State == 1)
 	{
-		ANGLOOP = 1;
+		// ANGLOOP = 1;
 		// 让小车沿着一开始摆放的方向行驶，不使用角度环
 		if( (total_left + total_right)/2 > 7500)
 		{
@@ -93,11 +93,13 @@ void loop()
 		}
 		else if( (total_left + total_right)/2 > 5500 )
 		{
-			pid_set_base_speed(30);
+			// pid_set_base_speed(30);
+			pid_set_tar_speed(30,30);
 		}
 		else
 		{
-			pid_set_base_speed(50);
+			// pid_set_base_speed(50);
+			pid_set_tar_speed(50,50);
 		}
 	}
 	
@@ -111,7 +113,7 @@ void loop()
   /*----后台任务-------------------------------*/
 	OLED_proc();
 	Data_proc();
-	VOFA_proc();
+//	VOFA_proc();
 }
 
 
@@ -264,7 +266,7 @@ void OLED_proc()
 	{
 		snprintf(Text,30,"State = %d   ", State);
 		OLED_ShowString(1, 1, Text);
-		snprintf(Text,30,"L=%.0f   R=%.0f   ",MotorBL.target,MotorAR.target);
+		snprintf(Text,30,"L=%.0f   R=%.0f   ",MotorBL.now,MotorAR.now);
 		OLED_ShowString(2, 1, Text);
 		snprintf(Text,30,"yaw_hmc=%.3f   ", yaw_hmc);
 		OLED_ShowString(3, 1, Text);
