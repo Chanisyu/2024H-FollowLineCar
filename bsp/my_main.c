@@ -43,12 +43,12 @@ void setup()
   MotorBL_start(); 
 	
 	// PID参数的初始化
-  pid_Init(&MotorAR,DELTA_PID,10,10,0);
-  pid_Init(&MotorBL,DELTA_PID,10,10,0);
+  pid_Init(&MotorAR,DELTA_PID,15,10,0);
+  pid_Init(&MotorBL,DELTA_PID,15,10,0);
 	pid_Init(&angle,POSITION_PID,0.9,0,18);
 	
   pid_set_tar_speed(0,0);
-  
+   
 	MPU6050_Init();
 	HAL_Delay(50);
   HMC5883L_Init();

@@ -8,10 +8,14 @@
 float last_err = 0;
 uint16_t lose_cnt = 0;
 
-float Kp = 9;
-float Kd = 0.15;
-float Kpp = 1.2;
-float Kdd = 0.4;
+float now_out = 0;
+float last_out = 0;
+float fina_out = 0;
+
+float Kp = 8;
+float Kd = 2.45;
+float Kpp = 0.1;
+float Kdd = 0.25;
 
 static void gray_delay_short(void)
 {
@@ -52,14 +56,14 @@ float track_error(void)
 	float sum = 0;
 	int cnt = 0;
 
-	if(O1 == 0) { sum -= 3.0; cnt++; }
-	if(O2 == 0) { sum -= 2.0; cnt++; }
-	if(O3 == 0) { sum -= 1.0; cnt++; }
-	if(O4 == 0) { sum -= 0.3; cnt++; }
-	if(O5 == 0) { sum += 0.3; cnt++; }
-	if(O6 == 0) { sum += 1.0; cnt++; }
-	if(O7 == 0) { sum += 2.0; cnt++; }
-	if(O8 == 0) { sum += 3.0; cnt++; }
+	if(O1 == 0) { sum -= 3.5; cnt++; }
+	if(O2 == 0) { sum -= 2.5; cnt++; }
+	if(O3 == 0) { sum -= 1.5; cnt++; }
+	if(O4 == 0) { sum -= 0.5; cnt++; }
+	if(O5 == 0) { sum += 0.5; cnt++; }
+	if(O6 == 0) { sum += 1.5; cnt++; }
+	if(O7 == 0) { sum += 2.5; cnt++; }
+	if(O8 == 0) { sum += 3.5; cnt++; }
 
 	// 丢线处理
 	if(cnt == 0)
@@ -100,12 +104,14 @@ void track(void)
 	last_err = err;
 
 	// 灰度偏差P修正 + 灰度偏差D修正 + 非线性大偏差修正 + 陀螺仪角速度修正
-	float out = Kp * err + Kd * derr + Kpp * (err*fabs(err)) + Kdd * (float)((float)gz - gyro_zero_z)/16.4f;
+	now_out = Kp * err + Kd * derr + Kpp * (err*fabs(err)) + Kdd * (float)((float)gz - gyro_zero_z)/16.4f;
+	fina_out = now_out*0.3f + last_out*0.7f;
+	last_out = now_out;
 
 	// TODO:这个地方的base可以设定为全局变量方便修改
 	int base = 50;
-	int right = base - (int)out;
-	int left  = base + (int)out;
+	int right = base - (int)fina_out;
+	int left  = base + (int)fina_out;
 
 	if (right < 0) right = 0;
 	if (left < 0) left = 0;
