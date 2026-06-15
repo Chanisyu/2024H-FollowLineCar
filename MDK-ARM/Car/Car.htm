@@ -3,7 +3,7 @@
 <title>Static Call Graph - [Car\Car.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image Car\Car.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Mon Jun 15 08:59:16 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Mon Jun 15 11:43:46 2026
 <BR><P>
 <H3>Maximum Stack Usage =        580 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -1579,7 +1579,7 @@ Global Symbols
 <LI><a href="#[fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OLED_Clear
 </UL>
 
-<P><STRONG><a name="[109]"></a>OLED_proc</STRONG> (Thumb, 586 bytes, Stack size 40 bytes, my_main.o(i.OLED_proc))
+<P><STRONG><a name="[109]"></a>OLED_proc</STRONG> (Thumb, 614 bytes, Stack size 40 bytes, my_main.o(i.OLED_proc))
 <BR><BR>[Stack]<UL><LI>Max Depth = 176 + Unknown Stack Size
 <LI>Call Chain = OLED_proc &rArr; __2snprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
@@ -1833,12 +1833,16 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[12e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;track_error
 </UL>
 
-<P><STRONG><a name="[123]"></a>key_proc</STRONG> (Thumb, 226 bytes, Stack size 24 bytes, my_main.o(i.key_proc))
-<BR><BR>[Stack]<UL><LI>Max Depth = 88<LI>Call Chain = key_proc &rArr; OLED_Clear &rArr; OLED_SetCursor &rArr; OLED_WriteCommand &rArr; OLED_I2C_SendByte
+<P><STRONG><a name="[123]"></a>key_proc</STRONG> (Thumb, 358 bytes, Stack size 40 bytes, my_main.o(i.key_proc))
+<BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = key_proc &rArr; OLED_Clear &rArr; OLED_SetCursor &rArr; OLED_WriteCommand &rArr; OLED_I2C_SendByte
 </UL>
 <BR>[Calls]<UL><LI><a href="#[fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OLED_Clear
 <LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fsub
 <LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fadd
+<LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
+<LI><a href="#[11c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dsub
+<LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
+<LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2f
 </UL>
 <BR>[Called By]<UL><LI><a href="#[124]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;loop
 </UL>
@@ -1963,7 +1967,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pid_control
 </UL>
 
-<P><STRONG><a name="[126]"></a>setup</STRONG> (Thumb, 154 bytes, Stack size 16 bytes, my_main.o(i.setup))
+<P><STRONG><a name="[126]"></a>setup</STRONG> (Thumb, 146 bytes, Stack size 16 bytes, my_main.o(i.setup))
 <BR><BR>[Stack]<UL><LI>Max Depth = 216<LI>Call Chain = setup &rArr; calibrate_gyro &rArr; MPU6050_GetData &rArr; MPU6050_ReadBytes &rArr; HAL_I2C_Mem_Read &rArr; I2C_RequestMemoryRead &rArr; I2C_WaitOnMasterAddressFlagUntilTimeout
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
@@ -2045,6 +2049,7 @@ Global Symbols
 <LI><a href="#[129]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;track
 <LI><a href="#[127]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pid_cal_angle
 <LI><a href="#[117]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__mathlib_tofloat
+<LI><a href="#[123]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;key_proc
 <LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Data_proc
 </UL>
 
@@ -2061,6 +2066,7 @@ Global Symbols
 <LI><a href="#[127]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pid_cal_angle
 <LI><a href="#[10f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__kernel_poly
 <LI><a href="#[94]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;atan
+<LI><a href="#[123]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;key_proc
 <LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Data_proc
 </UL>
 
@@ -2180,6 +2186,7 @@ Global Symbols
 </UL>
 <BR>[Called By]<UL><LI><a href="#[12e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;track_error
 <LI><a href="#[94]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;atan
+<LI><a href="#[123]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;key_proc
 </UL>
 
 <P><STRONG><a name="[141]"></a>_dsub</STRONG> (Thumb, 464 bytes, Stack size 32 bytes, daddsub_clz.o(x$fpl$dsub), UNUSED)
@@ -2193,6 +2200,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[12e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;track_error
 <LI><a href="#[129]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;track
 <LI><a href="#[127]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pid_cal_angle
+<LI><a href="#[123]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;key_proc
 <LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OLED_proc
 <LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Data_proc
 <LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;VOFA_ParseLine

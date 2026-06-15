@@ -8,10 +8,10 @@
 float last_err = 0;
 uint16_t lose_cnt = 0;
 
-float Kp = 6;
-float Kd = 0;
-float Kpp = 0.3;
-float Kdd = 0;
+float Kp = 9;
+float Kd = 0.15;
+float Kpp = 1.2;
+float Kdd = 0.4;
 
 static void gray_delay_short(void)
 {
@@ -79,7 +79,7 @@ float track_error(void)
 //			State = 1;
 			return 0;
 		}
-		return last_err > 0 ? 3 : -3;
+		return last_err > 0 ? 4 : -4;
 	}
 	else
 	{
@@ -103,14 +103,14 @@ void track(void)
 	float out = Kp * err + Kd * derr + Kpp * (err*fabs(err)) + Kdd * (float)((float)gz - gyro_zero_z)/16.4f;
 
 	// TODO:这个地方的base可以设定为全局变量方便修改
-	int base = 40;
+	int base = 50;
 	int right = base - (int)out;
 	int left  = base + (int)out;
 
 	if (right < 0) right = 0;
 	if (left < 0) left = 0;
-	if (right > 60) right = 60;
-	if (left > 60) left = 60;
+	if (right > 80) right = 80;
+	if (left > 80) left = 80;
 
 	pid_set_tar_speed(right, left);
 }

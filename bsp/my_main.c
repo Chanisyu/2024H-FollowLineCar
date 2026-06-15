@@ -65,7 +65,6 @@ void setup()
 	VOFA_Init(&huart1);
 	
   /*----------第一题--------------------------*/
-	pid_set_tar_speed(50,50);
   /*-----------------------------------------*/
 }
 
@@ -153,22 +152,22 @@ void key_proc()
 			{
 				case 0:
 				{
-					Kp+=0.5;
+					Kp+=0.25;
 					break;
 				}
 				case 1:
 				{
-					Kd+=0.5;
+					Kd+=0.05;
 					break;
 				}
 				case 2:
 				{
-					Kpp+=0.5;
+					Kpp+=0.05;
 					break;
 				}
 				case 3:
 				{
-					Kdd+=0.5;
+					Kdd+=0.05;
 					break;
 				}
 			}
@@ -180,22 +179,22 @@ void key_proc()
 			{
 				case 0:
 				{
-					Kp-=0.5;
+					Kp-=0.25;
 					break;
 				}
 				case 1:
 				{
-					Kd-=0.5;
+					Kd-=0.05;
 					break;
 				}
 				case 2:
 				{
-					Kpp-=0.5;
+					Kpp-=0.05;
 					break;
 				}
 				case 3:
 				{
-					Kdd-=0.5;
+					Kdd-=0.05;
 					break;
 				}
 			}
@@ -214,6 +213,8 @@ void OLED_proc()
 	{
 		snprintf(Text,30,"yaw_hmc=%.3f   ", yaw_hmc);
 		OLED_ShowString(1, 1, Text);
+		snprintf(Text,30,"gz=%d   ", gz);
+		OLED_ShowString(2, 1, Text);
 	}
 	else if(State == 0)
 	{
