@@ -308,7 +308,7 @@ void Data_proc()
 void VOFA_proc()
 {
 	if(VOFA_Flag == 0) return;
-	VOFA_SendSpeedLoop(MotorBL.target,MotorBL.now);
+	VOFA_SendSpeedLoop(&MotorBL);
 	VOFA_Flag = 0;
 }
 /* USER CODE END 0 */
@@ -386,7 +386,7 @@ int main(void)
 	VOFA_Init(&huart1);
 	
 /*----------第一题--------------------------------------------------------------------*/
-	pid_set_tar_speed(50,50);
+	pid_set_tar_speed(10,10);
 /*------------------------------------------------------------------------------------*/
   /* USER CODE END 2 */
 

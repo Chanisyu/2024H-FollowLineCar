@@ -15,21 +15,31 @@ void VOFA_Init(UART_HandleTypeDef *huart)
 	HAL_UART_Receive_IT(vofa_uart,&vofa_rx_ch,1);
 }
 
-void VOFA_SendSpeedLoop(float target_speed,
-                        float real_speed)
+void VOFA_SendSpeedLoop(volatile pid_t *pid)
 {
 	if (vofa_uart == NULL)
 	{
 		return;
 	}
 
-	char buf[100];
+	if (pid == NULL)
+	{
+		return;
+	}
+
+	char buf[128];
 
 	int len = snprintf(buf,
 										 sizeof(buf),
-										 "%f,%f\n",
-										 target_speed,
-										 real_speed);
+										 "%lu,%.3f,%.3f,%.3f,%.3f,%.4f,%.4f,%.4f\n",
+										 HAL_GetTick(),
+										 pid->target,
+										 pid->now,
+										 pid->out,
+										 pid->error[0],
+										 pid->p,
+										 pid->i,
+										 pid->d);
 
 	if (len > 0 && len < sizeof(buf))
 	{
@@ -41,7 +51,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if (huart->Instance == USART1)
 	{
-		if (vofa_rx_ch == '\n'/* ||vofa_rx_ch == '\r' */)
+		if (vofa_rx_ch == '\n')
 		{
 			if (vofa_rx_idx > 0)
 			{
@@ -49,6 +59,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 				VOFA_ParseLine(vofa_rx_line);
 				vofa_rx_idx = 0;
 			}
+		}
+		else if (vofa_rx_ch == '\r')
+		{
+			/* Ignore CR so both LF and CRLF commands work. */
 		}
 		else
 		{
@@ -68,9 +82,25 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 void VOFA_ParseLine(char *line)
 {
+    float p;
+    float i;
+    float d;
     float value;
 
-    if (sscanf(line, "T=%f", &value) == 1)
+    if (strcmp(line, "STATUS") == 0)
+    {
+        VOFA_SendSpeedLoop(&MotorBL);
+    }
+    else if (sscanf(line, "SET P:%f I:%f D:%f", &p, &i, &d) == 3)
+    {
+        MotorBL.p = p;
+        MotorBL.i = i;
+        MotorBL.d = d;
+        MotorAR.p = p;
+        MotorAR.i = i;
+        MotorAR.d = d;
+    }
+    else if (sscanf(line, "T=%f", &value) == 1)
     {
 			snprintf(Text,10,"%f",value);
 			OLED_ShowString(4,1,Text);
@@ -79,14 +109,17 @@ void VOFA_ParseLine(char *line)
     else if (sscanf(line, "KP=%f", &value) == 1)
     {
       MotorBL.p = value;
+      MotorAR.p = value;
     }
     else if (sscanf(line, "KI=%f", &value) == 1)
     {
       MotorBL.i = value;
+      MotorAR.i = value;
     }
     else if (sscanf(line, "KD=%f", &value) == 1)
     {
       MotorBL.d = value;
+      MotorAR.d = value;
     }
 //    else if (strcmp(line, "STOP") == 0)
 //    {
