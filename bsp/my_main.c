@@ -43,8 +43,8 @@ void setup()
   MotorBL_start(); 
 	
 	// PID参数的初始化
-  pid_Init(&MotorAR,DELTA_PID,15,10,0);
-  pid_Init(&MotorBL,DELTA_PID,15,10,0);
+  pid_Init(&MotorAR,DELTA_PID,17,10,0.97);
+  pid_Init(&MotorBL,DELTA_PID,17,10,0.97);
 	pid_Init(&angle,POSITION_PID,0.9,0,18);
 	
   pid_set_tar_speed(0,0);
