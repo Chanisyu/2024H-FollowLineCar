@@ -8,6 +8,7 @@ volatile int16_t left_speed;
 volatile uint8_t Disp_Flag = 0;
 volatile uint8_t Data_Flag = 0;
 volatile uint8_t VOFA_Flag = 0;
+volatile uint8_t PIDConFlag = 0;
 
 // 小车运行状态
 int8_t State = -1;
@@ -113,6 +114,7 @@ void loop()
   /*----后台任务-------------------------------*/
 	OLED_proc();
 	Data_proc();
+	pid_control();
 //	VOFA_proc();
 }
 
@@ -324,7 +326,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim->Instance == TIM4)
 	{	
-		pid_control();
+		PIDConFlag=1;
 		key_task();
 		Disp_Flag = 1;
 	}

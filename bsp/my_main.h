@@ -28,6 +28,7 @@ extern uint8_t ANGLOOP;
 extern int16_t ANGStra;
 extern float KddForANG;
 extern float KppForANG;
+extern volatile uint8_t PIDConFlag;
 
 void setup();
 void loop();

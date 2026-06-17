@@ -47,6 +47,8 @@ void pid_set_base_speed(int16_t Speed)
 
 void pid_control()
 {
+	if(PIDConFlag == 0) return;
+	PIDConFlag=0;
 	// 角度环
 	if(ANGLOOP == 1)
 	{
