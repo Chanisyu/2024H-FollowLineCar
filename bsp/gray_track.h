@@ -1,12 +1,15 @@
+/**
+ * @file    gray_track.h
+ * @brief   数字灰度传感器循迹接口和 CLK/DAT 引脚定义。
+ */
+
 #ifndef __gray_track_h_
 #define __gray_track_h_
 #include "main.h"
 
-// 推挽输出
-#define GRAY_CLK_PORT GPIOA
+#define GRAY_CLK_PORT GPIOA  // 推挽输出：串行读取时钟线。
 #define GRAY_CLK_PIN  GPIO_PIN_3
-// 输入模式
-#define GRAY_DAT_PORT GPIOA
+#define GRAY_DAT_PORT GPIOA  // 输入模式：串行读取数据线。
 #define GRAY_DAT_PIN  GPIO_PIN_4
 
 #define O1 ((gray>>0)&1)

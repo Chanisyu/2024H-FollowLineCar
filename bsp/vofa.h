@@ -1,3 +1,8 @@
+/**
+ * @file    vofa.h
+ * @brief   VOFA 串口调试接口、接收缓冲区和命令解析入口。
+ */
+
 #ifndef __VOFA_H__
 #define __VOFA_H__
 
@@ -25,8 +30,7 @@ void VOFA_Init(UART_HandleTypeDef *huart);
  * target_speed：目标速度，用作第一路波形。
  * real_speed：实际速度，用作第二路波形。
  */
-void VOFA_SendSpeedLoop(float target_speed,
-                        float real_speed);
+void VOFA_SendSpeedLoop(float target_speed,float real_speed);
 
 /*
  * HAL 串口接收完成回调函数。
@@ -39,6 +43,5 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
  * line：以 '\0' 结尾的命令字符串，例如 "T=50"、"KP=8.5"。
  */
 void VOFA_ParseLine(char *line);
-
 
 #endif

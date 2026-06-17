@@ -4,7 +4,8 @@
 #include "main.h"
 #include "math.h"
 
-#define MPU6050_ADDR        (0x68 << 1)   // AD0鎺ュ湴鏃跺湴鍧€0x68锛孒AL閲屽乏绉待恢复注释浣待恢复注释
+/* MPU6050 7-bit 地址左移 1 位后的 HAL 访问地址。AD0 接地时为 0x68。 */
+#define MPU6050_ADDR        (0x68<<1)
 
 #define SMPLRT_DIV          0x19
 #define CONFIG              0x1A
@@ -33,8 +34,8 @@
 #define PWR_MGMT_2          0x6C
 #define WHO_AM_I            0x75
 
-#define USER_CTRL    0x6A
-#define INT_PIN_CFG  0x37
+#define USER_CTRL           0x6A
+#define INT_PIN_CFG         0x37
 
 #define MPU6050_SMPLRT_DIV_VALUE 0x09
 #define MPU6050_CONFIG_VALUE 0x03

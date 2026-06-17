@@ -1,165 +1,147 @@
+/**
+ * @file    mpu6050.c
+ * @brief   MPU6050 初始化、原始数据读取和陀螺仪零漂校准。
+ *
+ * 文件结构：
+ *   1. MPU6050_Write()      - 单字节写寄存器
+ *   2. MPU6050_Read()       - 单字节读寄存器
+ *   3. MPU6050_Init()       - 配置采样率、量程、中断和旁路模式
+ *   4. MPU6050_ReadBytes()  - 批量读取连续寄存器
+ *   5. MPU6050_GetData()    - 读取加速度计和陀螺仪原始值
+ *   6. calibrate_gyro()     - 采样平均得到 Z 轴零偏
+ */
+
 #include "mpu6050.h"
 #include "i2c.h"
 
 /*
-1.  ax、ay、az，MPU6050 加速度计三轴原始值，在MPU6050模块里定义和修改。
-
-2.  gx、gy、gz，MPU6050 陀螺仪三轴原始值，在MPU6050模块里定义和修改。
-
-3.  gyro_zero_z，Z 轴陀螺仪零漂平均值，用来修正 gz。在MPU6050里的零漂校准函数被修改，这个函数会在初始被调用。
-
-4. roll_gyro,  pitch_gyro,  yaw_gyro，只靠陀螺仪积分得到的姿态角。陀螺仪积分的特点：短时间很灵敏、很平滑。长时间会漂移，
-因为一点点零漂会被不断积分放大。yaw_gyro 理论上可以表示偏航角，但会随时间慢慢跑偏。
-在mpu6050模块里定义，在main里面的数据计算函数里计算。优点是短时间响应快，缺点是长时间零漂。
-
-5. roll_acc, pitch_acc, yaw_acc，由加速度计粗略计算出来的角度。roll_acc 有物理意义。
-pitch_acc 有物理意义。yaw_acc 这个写法数学上能算出一个角，
-但作为真实偏航角并不可靠。在mpu6050模块里定义，在main里面的数据计算函数里计算。优点是不会零漂，缺点是运动激烈的时候会有扰动，不准。
-
-6. hmc_x, hmc_y, hmc_z，HMC5883L 三轴磁力计原始值。在HMC5883L里被定义，在main里面的数据计算函数里计算。
-
-7. hmc_x_cal, hmc_y_cal, hmc_z_cal，校准后的磁力计值。在HMC5883L里被定义，在main里面的数据计算函数里计算。
-
-8. yaw_hmc，由 atan2f(hmc_y_cal, hmc_x_cal) 算出的磁力计航向角。在HMC5883L里被定义，在main里面的数据计算函数里计算。
-
-9. HMC5883L_Cali_Res，储存校准结果的结构体。HMC5883L 校准结果，包含 offset 和 scale。
-在HMC5883L_Calibration里被定义，在HMC5883L_Calibration里定义的校准函数里函数里计算。
-
-10.  offset_x/y/z	三轴偏移量，用来修正硬铁干扰。scale_x/y/z	三轴缩放系数，用来修正软铁/轴向比例差异。
-
-11. 若没有校准，全局 HMC5883L_Cali_Res 默认全是 0。这样 scale_x/scale_y 也是 0，hmc_x_cal/hmc_y_cal 会被算成 0，yaw_hmc 很可能失去实际意义。
-除非你后面改代码给它赋过校准参数。
-*/
+ * 变量说明：
+ * 1. ax/ay/az：MPU6050 加速度计三轴原始值。
+ * 2. gx/gy/gz：MPU6050 陀螺仪三轴原始值。
+ * 3. gyro_zero_z：Z 轴陀螺仪零偏平均值，用于修正 gz。
+ * 4. roll_gyro/pitch_gyro/yaw_gyro：纯陀螺仪积分得到的姿态角，短期快、长期漂。
+ * 5. roll_acc/pitch_acc/yaw_acc：由加速度计粗算的角度，抗漂移但受运动干扰。
+ * 6. hmc_x/hmc_y/hmc_z：磁力计原始值，在 HMC5883L 模块中定义。
+ * 7. hmc_x_cal/hmc_y_cal/hmc_z_cal：磁力计校准后的值。
+ * 8. yaw_hmc：由 atan2f(hmc_y_cal,hmc_x_cal) 计算的磁力计航向角。
+ * 9. HMC5883L_Cali_Res：磁力计校准结果，包含 offset 和 scale。
+ * 10. offset_x/y/z 与 scale_x/y/z：分别修正硬铁偏移和软铁比例差异。
+ */
 
 
 // 这些是原始数据
-int16_t ax, ay, az, gx, gy, gz;
-// 这些是要通过计算算出来的具体数据
-float roll_gyro, pitch_gyro, yaw_gyro;
-float roll_acc, pitch_acc, yaw_acc;
-float roll_Kalman, pitch_Kalman, yaw_Kalman;
-float gyro_zero_z = 0.0f;
+int16_t ax,ay,az,gx,gy,gz;
+float roll_gyro,pitch_gyro,yaw_gyro;
+float roll_acc,pitch_acc,yaw_acc;
+float roll_Kalman,pitch_Kalman,yaw_Kalman;
+float gyro_zero_z=0.0f;  // Z 轴陀螺仪零偏，跨帧保存，供偏航角积分修正使用。
 
-// 我重写了MPU6050的模块，具体修改了什么，请查看 `HMC5883L.c` 
+// 我重写了 MPU6050 的模块，具体修改了什么，请查看 `HMC5883L.c`。
 
-HAL_StatusTypeDef MPU6050_Write(uint8_t addr, uint8_t dat)
+HAL_StatusTypeDef MPU6050_Write(uint8_t addr,uint8_t dat)
 {
-    return HAL_I2C_Mem_Write(&hi2c2,
-                             MPU6050_ADDR,
-                             addr,						// 内部要操作的地址
-                             I2C_MEMADD_SIZE_8BIT,		// 寄存器有多宽
-                             &dat,						
-                             1,							// 要操作几字节
-                             100);
+  return HAL_I2C_Mem_Write(&hi2c2,
+                           MPU6050_ADDR,
+                           addr,  // 内部寄存器地址。
+                           I2C_MEMADD_SIZE_8BIT,
+                           &dat,
+                           1,
+                           100);
 }
 
-HAL_StatusTypeDef MPU6050_Read(uint8_t addr, uint8_t *dat)
+HAL_StatusTypeDef MPU6050_Read(uint8_t addr,uint8_t *dat)
 {
-    return HAL_I2C_Mem_Read(&hi2c2,
-                            MPU6050_ADDR,
-                            addr,
-                            I2C_MEMADD_SIZE_8BIT,
-                            dat,
-                            1,
-                            100);
+  return HAL_I2C_Mem_Read(&hi2c2,
+                          MPU6050_ADDR,
+                          addr,
+                          I2C_MEMADD_SIZE_8BIT,
+                          dat,
+                          1,
+                          100);
 }
 
 HAL_StatusTypeDef MPU6050_Init(void)
 {
-    uint8_t id = 0;
+  uint8_t id=0;
 
-    HAL_Delay(100);
+  HAL_Delay(100);  // 上电后等待内部时钟和寄存器状态稳定。
 
-    if (MPU6050_Read(WHO_AM_I, &id) != HAL_OK)
-        return HAL_ERROR;
+  if(MPU6050_Read(WHO_AM_I,&id)!=HAL_OK)  return HAL_ERROR;
+  if(id!=0x68)  return HAL_ERROR;
 
-    if (id != 0x68)
-        return HAL_ERROR;
+  // 退出睡眠，使用 Y 轴陀螺仪 PLL 时钟。
+  if(MPU6050_Write(PWR_MGMT_1,0x02)!=HAL_OK)  return HAL_ERROR;
 
-    // 退出睡眠，使用Y轴陀螺仪PLL时钟
-    if (MPU6050_Write(PWR_MGMT_1, 0x02) != HAL_OK)
-        return HAL_ERROR;
+  // 使能所有轴。
+  if(MPU6050_Write(PWR_MGMT_2,0x00)!=HAL_OK)  return HAL_ERROR;
 
-    // 所有轴都使能
-    if (MPU6050_Write(PWR_MGMT_2, 0x00) != HAL_OK)
-        return HAL_ERROR;
+  // 采样率会被 DLPF 影响；当前配置对应 100Hz，外部中断周期约 10ms。
+  if(MPU6050_Write(SMPLRT_DIV,MPU6050_SMPLRT_DIV_VALUE)!=HAL_OK)  return HAL_ERROR;
 
-		// 采样率会被底下的DLPF影响
-    // 采样率 = 1k / (1 + MPU6050_SMPLRT_DIV_VALUE) = 100Hz，100Hz的周期就是10ms，所以配置了INT的外部中断后，
-		// 就会10ms进一次外部中断
-    if (MPU6050_Write(SMPLRT_DIV, MPU6050_SMPLRT_DIV_VALUE) != HAL_OK)
-        return HAL_ERROR;
+  // DLPF=3 时既保留一定带宽，又能削弱陀螺仪高频噪声。
+  if(MPU6050_Write(CONFIG,MPU6050_CONFIG_VALUE)!=HAL_OK)  return HAL_ERROR;
 
-    // 开启DLPF，并设置为3，DLPF这玩意本质上就是个低通滤波器
-		// 写0或者7就是关闭，此时采样频率是8kHZ，如果开启的话，采样频率就是1kHZ
-    if (MPU6050_Write(CONFIG, MPU6050_CONFIG_VALUE) != HAL_OK)
-        return HAL_ERROR;
+  // 陀螺仪量程 ±2000 dps，适合小车快速转向场景。
+  if(MPU6050_Write(GYRO_CONFIG,0x18)!=HAL_OK)  return HAL_ERROR;
 
-    // 陀螺仪量程 ±2000 dps
-    if (MPU6050_Write(GYRO_CONFIG, 0x18) != HAL_OK)
-        return HAL_ERROR;
+  // 加速度计量程 ±2g，分辨率最高，适合姿态融合。
+  if(MPU6050_Write(ACCEL_CONFIG,0x00)!=HAL_OK)  return HAL_ERROR;
 
-    // 加速度量程 ±2g
-    if (MPU6050_Write(ACCEL_CONFIG, 0x00) != HAL_OK)
-        return HAL_ERROR;
+  // 数据就绪中断使能，PB5 外部中断由 main.c 里统一处理。
+  if(MPU6050_Write(INT_ENABLE,0x01)!=HAL_OK)  return HAL_ERROR;
 
-    // 数据就绪中断使能（如果INT引脚没接，也可以先不写这一句）
-    if (MPU6050_Write(INT_ENABLE, 0x01) != HAL_OK)
-        return HAL_ERROR;
+  // 关闭辅助 I2C Master，避免与旁路模式互斥。
+  if(MPU6050_Write(USER_CTRL,0x00)!=HAL_OK)  return HAL_ERROR;
 
-	  // 关闭 MPU6050 的辅助 I2C Master ( 辅助I2CMaster 和 旁路模式 是互斥的 )
-    if (MPU6050_Write(USER_CTRL, 0x00) != HAL_OK)     // USER_CTRL
-        return HAL_ERROR;
+  // 打开 bypass 旁路模式，让主控可直接访问 XDA/XCL 上的 HMC5883L。
+  if(MPU6050_Write(INT_PIN_CFG,0x02)!=HAL_OK)  return HAL_ERROR;
 
-    // 打开 bypass 旁路模式，让主控可直接访问 XDA/XCL 上的 HMC5883L
-    if (MPU6050_Write(INT_PIN_CFG, 0x02) != HAL_OK)   // INT_PIN_CFG, I2C_BYPASS_EN=1
-        return HAL_ERROR;
-	
-    return HAL_OK;
+  return HAL_OK;
 }
 
-HAL_StatusTypeDef MPU6050_ReadBytes(uint8_t addr, uint8_t *buf, uint16_t len)
+HAL_StatusTypeDef MPU6050_ReadBytes(uint8_t addr,uint8_t *buf,uint16_t len)
 {
-    return HAL_I2C_Mem_Read(&hi2c2,
-                            MPU6050_ADDR,
-                            addr,
-                            I2C_MEMADD_SIZE_8BIT,
-                            buf,
-                            len,
-                            100);
+  return HAL_I2C_Mem_Read(&hi2c2,
+                          MPU6050_ADDR,
+                          addr,
+                          I2C_MEMADD_SIZE_8BIT,
+                          buf,
+                          len,
+                          100);
 }
 
 HAL_StatusTypeDef MPU6050_GetData(void)
 {
-    uint8_t buf[14];
+  uint8_t buf[14];
 
-    if (MPU6050_ReadBytes(ACCEL_XOUT_H, buf, 14) != HAL_OK)
-        return HAL_ERROR;
+  if(MPU6050_ReadBytes(ACCEL_XOUT_H,buf,14)!=HAL_OK)  return HAL_ERROR;
 
-    ax = (int16_t)((buf[0]  << 8) | buf[1]);
-    ay = (int16_t)((buf[2]  << 8) | buf[3]);
-    az = (int16_t)((buf[4]  << 8) | buf[5]);
+  ax=(int16_t)((buf[0]<<8)|buf[1]);
+  ay=(int16_t)((buf[2]<<8)|buf[3]);
+  az=(int16_t)((buf[4]<<8)|buf[5]);
 
-    // buf[6], buf[7] 是温度，如果你后面要用可以再加变量保存
-    gx = (int16_t)((buf[8]  << 8) | buf[9]);
-    gy = (int16_t)((buf[10] << 8) | buf[11]);
-    gz = (int16_t)((buf[12] << 8) | buf[13]);
+  // buf[6], buf[7] 是温度，如果后面要用可以再单独保存。
+  gx=(int16_t)((buf[8]<<8)|buf[9]);
+  gy=(int16_t)((buf[10]<<8)|buf[11]);
+  gz=(int16_t)((buf[12]<<8)|buf[13]);
 
-    return HAL_OK;
+  return HAL_OK;
 }
 
-// 标定零漂
+// 标定零漂：连续采样 50 次取平均，得到 Z 轴陀螺仪静止偏置。
 void calibrate_gyro(void)
 {
-  float sum = 0;
-	volatile int a=0;
-  for(a=0; a<50; a++) 
-	{    
-		if(MPU6050_GetData() != HAL_OK)
-		{	
-			gz = 0;
-		}
-		sum += gz;
-	}
-	gyro_zero_z = (sum / 50);
+  float sum=0;
+  volatile int a=0;
+
+  for(a=0;a<50;a++)
+  {
+    if(MPU6050_GetData()!=HAL_OK)
+    {
+      gz=0;
+    }
+    sum+=gz;
+  }
+
+  gyro_zero_z=(sum/50);
 }
