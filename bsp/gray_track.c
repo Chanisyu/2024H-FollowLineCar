@@ -12,13 +12,13 @@ float now_out = 0;
 float last_out = 0;
 float fina_out = 0;
 
-float Kp = 8;
-float Kd = 2.45;
+float Kp = 5.0f;
+float Kd = 1.0f;
 float Kpp = 0.0f;
 float Kdd = 0.0f;
 
-#define TRACK_BASE_SPEED 36.0f
-#define TRACK_SPEED_MAX  72.0f
+#define TRACK_BASE_SPEED 18.0f
+#define TRACK_SPEED_MAX  36.0f
 
 static void gray_delay_short(void)
 {
@@ -71,10 +71,10 @@ float track_error(void)
 	// 丢线处理
 	if(cnt == 0)
 	{
-		// track_error被track调用，track在pid_control里被调用，而pid_control在【20ms】的定时器中断里被调用，
-		// 所以每一次lose_cnt代表的是20ms。
+		// track_error被track调用，track在pid_control里被调用，而pid_control在【10ms】的定时器中断里被调用，
+		// 所以每一次lose_cnt代表的是10ms。
 		lose_cnt++;
-		if(lose_cnt >= 50)
+		if(lose_cnt >= 100)
 		{
 			// 先停车
 			pid_set_tar_speed(0, 0);

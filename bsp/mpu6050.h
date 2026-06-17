@@ -36,7 +36,7 @@
 #define USER_CTRL    0x6A
 #define INT_PIN_CFG  0x37
 
-#define MPU6050_SMPLRT_DIV_VALUE 0x13
+#define MPU6050_SMPLRT_DIV_VALUE 0x09
 #define MPU6050_CONFIG_VALUE 0x03
 
 extern int16_t ax, ay, az, gx, gy, gz;

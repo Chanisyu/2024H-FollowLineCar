@@ -43,8 +43,8 @@ void setup()
   MotorBL_start(); 
 	
 	// PID参数的初始化
-  pid_Init(&MotorAR,DELTA_PID,17,10,0.97);
-  pid_Init(&MotorBL,DELTA_PID,17,10,0.97);
+  pid_Init(&MotorAR,DELTA_PID,17,5,0.5);
+  pid_Init(&MotorBL,DELTA_PID,17,5,0.5);
 	pid_Init(&angle,POSITION_PID,0.9,0,18);
 	
   pid_set_tar_speed(0,0);
@@ -59,7 +59,7 @@ void setup()
 	// HMC5883L_Calibration_RunBlocking(&HMC5883L_Cali_Res, 600, 20, App_ReadSample, App_DelayMs, 0);
 	
 	
-	// 启动TIM4，20ms触发一次。
+	// 启动TIM4，10ms触发一次。
   HAL_TIM_Base_Start_IT(&htim4);
 
 	VOFA_Init(&huart1);
@@ -88,18 +88,18 @@ void loop()
 			State = 2;
 			// 关闭角度环，启动循迹环
 			track_reset();
-			pid_set_tar_speed(36,36);
+			pid_set_tar_speed(18,18);
 			ANGLOOP = 0;
 		}
 		else if( (total_left + total_right)/2 > 5500 )
 		{
 			// pid_set_base_speed(30);
-			pid_set_tar_speed(30,30);
+			pid_set_tar_speed(15,15);
 		}
 		else
 		{
 			// pid_set_base_speed(50);
-			pid_set_tar_speed(50,50);
+			pid_set_tar_speed(25,25);
 		}
 	}
 	
@@ -287,11 +287,11 @@ void Data_proc()
 	MPU6050_GetData();		
 	HMC5883L_GetData(&hmc_x, &hmc_y, &hmc_z);
 	
-	// 通过陀螺仪计算角度，这个*0.005和EXTI的频率有关的，现在EXTI的频率是20ms一次，所以
-	// 这里是*0.02，如果改变了EXTI的频率这里也要变的，EXTI频率的改变方法在MPU6050_Init()里有写
-	roll_gyro += (float)gx / 16.4 * 0.02;
-	pitch_gyro += (float)gy / 16.4 * 0.02;
-	yaw_gyro += ((float)gz - (float)gyro_zero_z) / 16.4 * 0.02;
+	// 通过陀螺仪计算角度，这个*0.01和EXTI的频率有关的，现在EXTI的频率是10ms一次，所以
+	// 这里是*0.01，如果改变了EXTI的频率这里也要变的，EXTI频率的改变方法在MPU6050_Init()里有写
+	roll_gyro += (float)gx / 16.4 * 0.01;
+	pitch_gyro += (float)gy / 16.4 * 0.01;
+	yaw_gyro += ((float)gz - (float)gyro_zero_z) / 16.4 * 0.01;
 	
 	// 计算加速度计角度
 	roll_acc = atan((float)ay/az) * 57.296;
@@ -319,7 +319,7 @@ void VOFA_proc()
 }
 
 
-/**** 定时器中断，每20ms触发一次，用于控制pid和按键扫描。 ****/
+/**** 定时器中断，每10ms触发一次，用于控制pid和按键扫描。 ****/
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim->Instance == TIM4)
@@ -330,7 +330,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	}
 }
 
-/**** 外部中断，由MPU6050的INT引脚接到PB5，再开启外部中断，20ms触发一次，50Hz. ****/
+/**** 外部中断，由MPU6050的INT引脚接到PB5，再开启外部中断，10ms触发一次，100Hz. ****/
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if(GPIO_Pin == GPIO_PIN_5)

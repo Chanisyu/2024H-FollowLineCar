@@ -85,8 +85,8 @@ HAL_StatusTypeDef MPU6050_Init(void)
         return HAL_ERROR;
 
 		// 采样率会被底下的DLPF影响
-    // 采样率 = 1k / (1 + MPU6050_SMPLRT_DIV_VALUE) = 50Hz，50Hz的周期就是20ms，所以配置了INT的外部中断后，
-		// 就会20ms进一次外部中断
+    // 采样率 = 1k / (1 + MPU6050_SMPLRT_DIV_VALUE) = 100Hz，100Hz的周期就是10ms，所以配置了INT的外部中断后，
+		// 就会10ms进一次外部中断
     if (MPU6050_Write(SMPLRT_DIV, MPU6050_SMPLRT_DIV_VALUE) != HAL_OK)
         return HAL_ERROR;
 
