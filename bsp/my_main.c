@@ -87,7 +87,8 @@ void loop()
 		{
 			State = 2;
 			// 关闭角度环，启动循迹环
-			pid_set_tar_speed(50,50);
+			track_reset();
+			pid_set_tar_speed(36,36);
 			ANGLOOP = 0;
 		}
 		else if( (total_left + total_right)/2 > 5500 )

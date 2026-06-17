@@ -14,8 +14,11 @@ float fina_out = 0;
 
 float Kp = 8;
 float Kd = 2.45;
-float Kpp = 0.1;
-float Kdd = 0.25;
+float Kpp = 0.0f;
+float Kdd = 0.0f;
+
+#define TRACK_BASE_SPEED 36.0f
+#define TRACK_SPEED_MAX  72.0f
 
 static void gray_delay_short(void)
 {
@@ -94,8 +97,18 @@ float track_error(void)
 	{
 		return sum / (float)cnt;
 	}
+
+	return last_err;
 }
 
+void track_reset(void)
+{
+	last_err = 0.0f;
+	lose_cnt = 0;
+	now_out = 0.0f;
+	last_out = 0.0f;
+	fina_out = 0.0f;
+}
 
 void track(void)
 {
@@ -104,19 +117,21 @@ void track(void)
 	last_err = err;
 
 	// 灰度偏差P修正 + 灰度偏差D修正 + 非线性大偏差修正 + 陀螺仪角速度修正
-	now_out = Kp * err + Kd * derr + Kpp * (err*fabs(err)) + Kdd * (float)((float)gz - gyro_zero_z)/16.4f;
+	now_out = Kp * err + Kd * derr + Kpp * (err * fabsf(err)) + Kdd * (float)((float)gz - gyro_zero_z) / 16.4f;
 	fina_out = now_out*0.3f + last_out*0.7f;
-	last_out = now_out;
+	last_out = fina_out;
 
 	// TODO:这个地方的base可以设定为全局变量方便修改
-	int base = 50;
-	int right = base - (int)fina_out;
-	int left  = base + (int)fina_out;
+	if (fina_out > TRACK_BASE_SPEED) fina_out = TRACK_BASE_SPEED;
+	if (fina_out < -TRACK_BASE_SPEED) fina_out = -TRACK_BASE_SPEED;
+
+	int right = (int)(TRACK_BASE_SPEED - fina_out);
+	int left  = (int)(TRACK_BASE_SPEED + fina_out);
 
 	if (right < 0) right = 0;
 	if (left < 0) left = 0;
-	if (right > 80) right = 80;
-	if (left > 80) left = 80;
+	if (right > (int)TRACK_SPEED_MAX) right = (int)TRACK_SPEED_MAX;
+	if (left > (int)TRACK_SPEED_MAX) left = (int)TRACK_SPEED_MAX;
 
 	pid_set_tar_speed(right, left);
 }

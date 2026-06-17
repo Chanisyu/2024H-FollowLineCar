@@ -17,12 +17,21 @@ pid_t angle;
 
 volatile int16_t base_speed;
 
-void pid_Init(pid_t *pid ,uint8_t Mode ,float p ,float i ,float d)
+void pid_Init(volatile pid_t *pid ,uint8_t Mode ,float p ,float i ,float d)
 {
 	pid->pid_mode = Mode;
 	pid->p = p;
 	pid->i = i;
 	pid->d = d;
+	pid->target = 0.0f;
+	pid->now = 0.0f;
+	pid->error[0] = 0.0f;
+	pid->error[1] = 0.0f;
+	pid->error[2] = 0.0f;
+	pid->pout = 0.0f;
+	pid->iout = 0.0f;
+	pid->dout = 0.0f;
+	pid->out = 0.0f;
 }
 
 void pid_set_tar_speed(float spdAR ,float spdBL)
@@ -89,7 +98,7 @@ void pid_control()
 }
 
 /**** 用于速度环的pid计算函数 ****/
-void pid_cal_motor(pid_t *pid)
+void pid_cal_motor(volatile pid_t *pid)
 {
 	// 计算当前偏差
 	pid->error[0] = pid->target - pid->now;
@@ -115,7 +124,7 @@ void pid_cal_motor(pid_t *pid)
 }
 
 /**** 输出限幅函数 ****/
-void pidout_limit(pid_t *pid)
+void pidout_limit(volatile pid_t *pid)
 {
 		// 输出限幅
 	if(pid->out>=20000)	

@@ -19,6 +19,7 @@
 #define O8 ((gray>>7)&1)
 
 void track(void);
+void track_reset(void);
 
 extern float Kp;
 extern float Kd;
