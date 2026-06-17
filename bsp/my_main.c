@@ -322,7 +322,6 @@ void Data_proc()
 
 void VOFA_proc()
 {
-  static uint8_t speed_div=0;
   static uint8_t gray_div=0;
 
   if(VOFA_Flag==0)  return;
@@ -330,23 +329,25 @@ void VOFA_proc()
 
   if(vofa_stream_mode==0)
   {
-    speed_div++;
-    if(speed_div>=2)
-    {
-      speed_div=0;
-      VOFA_SendSpeedLoop(&MotorBL);
-    }
+    /*
+     * 速度模式每个 VOFA 节拍发送一次目标速度和实测速度。
+     * 该格式与 VOFA 曲线助手兼容，可用于观察速度环跟随情况。
+     */
+    VOFA_SendSpeedLoop(MotorBL.target,MotorBL.now);
     gray_div=0;
   }
   else
   {
+    /*
+     * 灰度模式下不每个 10ms 节拍都发送，避免串口传输占用主循环。
+     * 每累计 100 个节拍约 1s 发送一次，便于稳定观察各通道数据。
+     */
     gray_div++;
     if(gray_div>=100)
     {
       gray_div=0;
       VOFA_SendGrayArrays();
     }
-    speed_div=0;
   }
 }
 
