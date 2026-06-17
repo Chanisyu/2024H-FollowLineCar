@@ -327,6 +327,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if(htim->Instance == TIM4)
 	{	
 		PIDConFlag=1;
+		
+		MotorAR.now = (int16_t)(__HAL_TIM_GET_COUNTER(&htim2));
+		__HAL_TIM_SET_COUNTER(&htim2,0);
+		total_right += (uint32_t)MotorAR.now;
+		MotorBL.now = -(int16_t)(__HAL_TIM_GET_COUNTER(&htim3));
+		__HAL_TIM_SET_COUNTER(&htim3,0);
+		total_left += (uint32_t)MotorBL.now;
+		
 		key_task();
 		Disp_Flag = 1;
 	}

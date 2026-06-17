@@ -78,13 +78,7 @@ void pid_control()
 	}
 	// 2.获取当前速度
 	// TODO：左右轮的速度变量是在这里赋值的，但是这里是速度环的计算逻辑，是不是把这个逻辑移到别的地方会好一些？
-	MotorAR.now = (int16_t)(__HAL_TIM_GET_COUNTER(&htim2));
-	__HAL_TIM_SET_COUNTER(&htim2,0);
-	total_right += (uint32_t)MotorAR.now;
-	
-	MotorBL.now = -(int16_t)(__HAL_TIM_GET_COUNTER(&htim3));
-	__HAL_TIM_SET_COUNTER(&htim3,0);
-	total_left += (uint32_t)MotorBL.now;
+  // 已移动到定时器内
 	
 	// 3.输入pid控制器计算
 	pid_cal_motor(&MotorAR);
