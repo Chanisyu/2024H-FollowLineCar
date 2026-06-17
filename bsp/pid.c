@@ -60,6 +60,23 @@ void pid_set_base_speed(int16_t Speed)
   base_speed=Speed;
 }
 
+void pid_reset_motor(volatile pid_t *pid)
+{
+  pid->error[0]=0.0f;
+  pid->error[1]=0.0f;
+  pid->error[2]=0.0f;
+  pid->pout=0.0f;
+  pid->iout=0.0f;
+  pid->dout=0.0f;
+  pid->out=0.0f;
+}
+
+void pid_reset_speed_loop(void)
+{
+  pid_reset_motor(&MotorAR);
+  pid_reset_motor(&MotorBL);
+}
+
 void pid_control()
 {
   if(PIDConFlag==0)  return;

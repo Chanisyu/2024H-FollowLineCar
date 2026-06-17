@@ -13,7 +13,7 @@ enum
   DELTA_PID=1,     // 增量式
 };
 
-typedef struct
+typedef struct pid_s
 {
 	float target;      // 目标速度或目标角度，由上层控制逻辑在每个阶段更新。
 	float now;         // 当前实测速度或当前角度，作为 PID 反馈量。
@@ -23,7 +23,7 @@ typedef struct
 	float out;         // PID 最终输出，速度环对应电机 PWM 控制量。
 	uint8_t pid_mode;  // PID 计算模式：POSITION_PID 为位置式，DELTA_PID 为增量式。
 
-}pid_t;
+} pid_t;
 
 void pid_cal_motor(volatile pid_t *pid);
 void pid_cal_angle(pid_t *pid);
@@ -32,6 +32,8 @@ void pid_control();
 void pid_set_tar_speed(float spdAR,float spdBL);
 void pidout_limit(volatile pid_t *pid);
 void pid_set_base_speed(int16_t Speed);
+void pid_reset_motor(volatile pid_t *pid);
+void pid_reset_speed_loop(void);
 
 
 extern volatile pid_t MotorAR;

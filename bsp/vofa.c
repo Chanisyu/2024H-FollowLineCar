@@ -1,42 +1,20 @@
-/**
- * @file    vofa.c
- * @brief   VOFA 串口命令解析和调试波形发送。
- *
- * 文件结构：
- *   1. VOFA_Init()               - 启动串口接收中断
- *   2. VOFA_SendSpeedLoop()      - 发送速度环波形数据
- *   3. VOFA_SendGrayArrays()     - 发送 8 路灰度调试数组
- *   4. HAL_UART_RxCpltCallback() - 接收 1 字节并拼接成命令行
- *   5. VOFA_ParseLine()          - 解析串口命令并修改参数
- */
-
-#include "vofa.h"
-#include "OLED.h"
-#include "stdio.h"
-#include "pid.h"
-#include "gray_track.h"
-
-uint8_t vofa_rx_ch;
-char vofa_rx_line[64];
-uint8_t vofa_rx_idx=0;
-
-static UART_HandleTypeDef *vofa_uart=NULL;
-
-void VOFA_Init(UART_HandleTypeDef *huart)
-{
-  vofa_uart=huart;
-  HAL_UART_Receive_IT(vofa_uart,&vofa_rx_ch,1);
-}
-
-void VOFA_SendSpeedLoop(float target_speed,float real_speed)
-{
-  if(vofa_uart==NULL)
-  {
-    return;
-  }
-
-  char buf[100];
-  int len=snprintf(buf,sizeof(buf),"%f,%f\n",target_speed,real_speed);
+/*
+   * 兼容 8d24f0e 自动调参数据格式。
+   * 每帧发送 tick、目标/实测速度、PID 输出、当前偏差及 P/I/D 参数，供 VOFA/LLM 分析速度环。
+   *   tick,target,now,out,error,p,i,d\n
+   */
+  char buf[128];
+  int len=snprintf(buf,
+                   sizeof(buf),
+                   "%lu,%.3f,%.3f,%.3f,%.3f,%.4f,%.4f,%.4f\n",
+                   HAL_GetTick(),
+                   pid->target,
+                   pid->now,
+                   pid->out,
+                   pid->error[0],
+                   pid->p,
+                   pid->i,
+                   pid->d);
 
   if(len>0&&len<sizeof(buf))
   {
@@ -52,35 +30,8 @@ void VOFA_SendGrayArrays(void)
   }
 
   /*
-   * 发送前主动更新一次灰度，确保即使当前不在 State=2，
-   * 也能从串口看到最新的 8 路 ADC / 归一化 / 黑线强度数据。
-   */
-  gray_sensor_update();
-
-  char buf[256];
-  int len=snprintf(buf,sizeof(buf),
-                   "A,%u,%u,%u,%u,%u,%u,%u,%u\r\n"
-                   "N,%u,%u,%u,%u,%u,%u,%u,%u\r\n"
-                   "D,%u,%u,%u,%u,%u,%u,%u,%u\r\n",
-                   gray_analog[0],gray_analog[1],gray_analog[2],gray_analog[3],
-                   gray_analog[4],gray_analog[5],gray_analog[6],gray_analog[7],
-                   gray_normal[0],gray_normal[1],gray_normal[2],gray_normal[3],
-                   gray_normal[4],gray_normal[5],gray_normal[6],gray_normal[7],
-                   gray_dark[0],gray_dark[1],gray_dark[2],gray_dark[3],
-                   gray_dark[4],gray_dark[5],gray_dark[6],gray_dark[7]);
-
-  if(len>0&&len<sizeof(buf))
-  {
-    HAL_UART_Transmit(vofa_uart,(uint8_t *)buf,len,100);
-  }
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-  if(huart->Instance==USART1)
-  {
-    if(vofa_rx_ch=='\n')
-    {
+       * 收到 LF 表示一行命令结束；补写 '\0' 后交给 VOFA_ParseLine() 解析。
+       */
       if(vofa_rx_idx>0)
       {
         vofa_rx_line[vofa_rx_idx]='\0';
@@ -88,42 +39,106 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         vofa_rx_idx=0;
       }
     }
+    else if(vofa_rx_ch=='\r')
+    {
+      /* 忽略 CR 字符，以 LF 作为命令结束标志。 */
+    }
     else
     {
-      if(vofa_rx_idx<sizeof(vofa_rx_line)-1)
-      {
-        vofa_rx_line[vofa_rx_idx++]=vofa_rx_ch;
-      }
-      else
-      {
-        vofa_rx_idx=0;
-      }
-    }
-
-    HAL_UART_Receive_IT(vofa_uart,&vofa_rx_ch,1);
+      /* STATUS 命令立即回传左轮速度环当前状态，便于上位机查看。 */
+    VOFA_SendSpeedLoop(&MotorBL);
   }
-}
-
-void VOFA_ParseLine(char *line)
-{
-  float value;
-
-  if(sscanf(line,"T=%f",&value)==1)
+  else if(sscanf(line,"SET P:%f I:%f D:%f",&p,&i,&d)==3)
   {
-    snprintf(Text,10,"%f",value);
-    OLED_ShowString(4,1,Text);
+    /* SET P/I/D 同时更新左右轮速度环参数，保证两侧控制器使用同一组系数。 */
+    MotorBL.p=p;
+    MotorBL.i=i;
+    MotorBL.d=d;
+    MotorAR.p=p;
+    MotorAR.i=i;
+    MotorAR.d=d;
+  }
+  else if(strcmp(line,"MODE=SPEED")==0)
+  {
+    vofa_stream_mode=VOFA_STREAM_SPEED;
+  }
+  else if(strcmp(line,"MODE=GRAY")==0)
+  {
+    vofa_stream_mode=VOFA_STREAM_GRAY;
+  }
+  else if(strcmp(line,"STOP")==0)
+  {
+    vofa_speed_hold=0;
+    pid_set_tar_speed(0,0);
+    pid_reset_speed_loop();
+  }
+  else if(strcmp(line,"RSTPID")==0)
+  {
+    pid_reset_speed_loop();
+  }
+  else if(sscanf(line,"T=%f",&value)==1)
+  {
+    /*
+     * 设置目标速度后清除历史 PID 状态，避免旧积分项和旧偏差影响新的阶跃响应。
+     */
+    vofa_stream_mode=VOFA_STREAM_SPEED;
+    vofa_speed_hold=1;
     pid_set_tar_speed(value,value);
+    pid_reset_speed_loop();
+    snprintf(Text,30,"T=%.2f   ",value);
+    OLED_ShowString(4,1,Text);
   }
   else if(sscanf(line,"KP=%f",&value)==1)
   {
     MotorBL.p=value;
+    MotorAR.p=value;
   }
   else if(sscanf(line,"KI=%f",&value)==1)
   {
     MotorBL.i=value;
+    MotorAR.i=value;
   }
   else if(sscanf(line,"KD=%f",&value)==1)
   {
     MotorBL.d=value;
+    MotorAR.d=value;
+  }
+  else if(sscanf(line,"TL=%f",&value)==1)
+  {
+    vofa_stream_mode=VOFA_STREAM_SPEED;
+    vofa_speed_hold=1;
+    MotorBL.target=value;
+    pid_reset_motor(&MotorBL);
+  }
+  else if(sscanf(line,"TR=%f",&value)==1)
+  {
+    vofa_stream_mode=VOFA_STREAM_SPEED;
+    vofa_speed_hold=1;
+    MotorAR.target=value;
+    pid_reset_motor(&MotorAR);
+  }
+  else if(sscanf(line,"KPL=%f",&value)==1)
+  {
+    MotorBL.p=value;
+  }
+  else if(sscanf(line,"KIL=%f",&value)==1)
+  {
+    MotorBL.i=value;
+  }
+  else if(sscanf(line,"KDL=%f",&value)==1)
+  {
+    MotorBL.d=value;
+  }
+  else if(sscanf(line,"KPR=%f",&value)==1)
+  {
+    MotorAR.p=value;
+  }
+  else if(sscanf(line,"KIR=%f",&value)==1)
+  {
+    MotorAR.i=value;
+  }
+  else if(sscanf(line,"KDR=%f",&value)==1)
+  {
+    MotorAR.d=value;
   }
 }

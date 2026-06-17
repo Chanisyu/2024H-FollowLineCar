@@ -69,17 +69,35 @@ void setup()
 
 void loop()
 {
-  // ------- 1. 运行状态机 -------
-  if(State==0)
+  static int8_t last_state=127;
+
+  if(State!=last_state)
   {
-    pid_set_tar_speed(0,0);
-    ANGStra=yaw_hmc;
-    angle.target=ANGStra;
+    if(State==0)
+    {
+      ANGLOOP=0;
+      ANGStra=yaw_hmc;
+      angle.target=ANGStra;
+      if(vofa_speed_hold==0)
+      {
+        pid_set_tar_speed(0,0);
+        pid_reset_speed_loop();
+      }
+    }
+    else if(last_state==0)
+    {
+      vofa_speed_hold=0;
+      pid_set_tar_speed(0,0);
+      pid_reset_speed_loop();
+    }
+
+    last_state=State;
   }
 
+  // ------- 1. 直行阶段速度规划 -------
   if(State==1)
   {
-    // 按编码器里程分段给速度，超过阈值后进入灰度循迹段。
+    // 编码器平均累计值达到分段阈值后降低目标速度，接近入弯前预先减速。
     if((total_left+total_right)/2>7500)
     {
       State=2;
@@ -105,11 +123,11 @@ void loop()
 
   key_proc();
 
-  // ------- 2. 后台任务 -------
+  // ------- 2. 执行周期任务 -------
   OLED_proc();
   Data_proc();
   pid_control();
-//  VOFA_proc();
+  VOFA_proc();
 }
 
 // ================================================================
@@ -142,7 +160,7 @@ void key_proc()
     if(KEYS[1].key_short==1)
     {
       Selt_para++;
-      if(Selt_para>=4)
+      if(Selt_para>=3)
       {
         Selt_para=0;
       }
@@ -154,22 +172,20 @@ void key_proc()
       {
         case 0:
         {
-          Kp+=0.1;
+          MotorAR.p+=0.5f;
+          MotorBL.p+=0.5f;
           break;
         }
         case 1:
         {
-          Kd+=0.05;
+          MotorAR.i+=0.5f;
+          MotorBL.i+=0.5f;
           break;
         }
         case 2:
         {
-          Kpp+=0.05;
-          break;
-        }
-        case 3:
-        {
-          Kdd+=0.05;
+          MotorAR.d+=0.1f;
+          MotorBL.d+=0.1f;
           break;
         }
       }
@@ -181,22 +197,20 @@ void key_proc()
       {
         case 0:
         {
-          Kp-=0.1;
+          MotorAR.p-=0.5f;
+          MotorBL.p-=0.5f;
           break;
         }
         case 1:
         {
-          Kd-=0.05;
+          MotorAR.i-=0.5f;
+          MotorBL.i-=0.5f;
           break;
         }
         case 2:
         {
-          Kpp-=0.05;
-          break;
-        }
-        case 3:
-        {
-          Kdd-=0.05;
+          MotorAR.d-=0.1f;
+          MotorBL.d-=0.1f;
           break;
         }
       }
@@ -226,48 +240,34 @@ void OLED_proc()
   {
     if(Selt_para==0)
     {
-      snprintf(Text,30,"Kp=%.2f ",Kp);
+      snprintf(Text,30,"P=%.2f ",MotorBL.p);
       OLED_ShowStringReverse(1,1,Text);
-      snprintf(Text,30,"Kd=%.2f ",Kd);
+      snprintf(Text,30,"I=%.2f ",MotorBL.i);
       OLED_ShowString(2,1,Text);
-      snprintf(Text,30,"Kpp=%.2f ",Kpp);
+      snprintf(Text,30,"D=%.2f ",MotorBL.d);
       OLED_ShowString(3,1,Text);
-      snprintf(Text,30,"Kdd=%.2f ",Kdd);
-      OLED_ShowString(4,1,Text);
     }
     else if(Selt_para==1)
     {
-      snprintf(Text,30,"Kp=%.2f ",Kp);
+      snprintf(Text,30,"P=%.2f ",MotorBL.p);
       OLED_ShowString(1,1,Text);
-      snprintf(Text,30,"Kd=%.2f ",Kd);
+      snprintf(Text,30,"I=%.2f ",MotorBL.i);
       OLED_ShowStringReverse(2,1,Text);
-      snprintf(Text,30,"Kpp=%.2f ",Kpp);
+      snprintf(Text,30,"D=%.2f ",MotorBL.d);
       OLED_ShowString(3,1,Text);
-      snprintf(Text,30,"Kdd=%.2f ",Kdd);
-      OLED_ShowString(4,1,Text);
     }
     else if(Selt_para==2)
     {
-      snprintf(Text,30,"Kp=%.2f ",Kp);
+      snprintf(Text,30,"P=%.2f ",MotorBL.p);
       OLED_ShowString(1,1,Text);
-      snprintf(Text,30,"Kd=%.2f ",Kd);
+      snprintf(Text,30,"I=%.2f ",MotorBL.i);
       OLED_ShowString(2,1,Text);
-      snprintf(Text,30,"Kpp=%.2f ",Kpp);
+      snprintf(Text,30,"D=%.2f ",MotorBL.d);
       OLED_ShowStringReverse(3,1,Text);
-      snprintf(Text,30,"Kdd=%.2f ",Kdd);
-      OLED_ShowString(4,1,Text);
     }
-    else if(Selt_para==3)
-    {
-      snprintf(Text,30,"Kp=%.2f ",Kp);
-      OLED_ShowString(1,1,Text);
-      snprintf(Text,30,"Kd=%.2f ",Kd);
-      OLED_ShowString(2,1,Text);
-      snprintf(Text,30,"Kpp=%.2f ",Kpp);
-      OLED_ShowString(3,1,Text);
-      snprintf(Text,30,"Kdd=%.2f ",Kdd);
-      OLED_ShowStringReverse(4,1,Text);
-    }
+
+    snprintf(Text,30,"T=%.1f L=%.1f ",MotorBL.target,MotorBL.now);
+    OLED_ShowString(4,1,Text);
   }
   else if(State==1||State==2)
   {
@@ -322,16 +322,32 @@ void Data_proc()
 
 void VOFA_proc()
 {
-  static uint32_t last_send_tick=0;
-  uint32_t now_tick=HAL_GetTick();
+  static uint8_t speed_div=0;
+  static uint8_t gray_div=0;
 
-  if(now_tick-last_send_tick<1000)
+  if(VOFA_Flag==0)  return;
+  VOFA_Flag=0;
+
+  if(vofa_stream_mode==0)
   {
-    return;
+    speed_div++;
+    if(speed_div>=2)
+    {
+      speed_div=0;
+      VOFA_SendSpeedLoop(&MotorBL);
+    }
+    gray_div=0;
   }
-
-  last_send_tick=now_tick;
-  VOFA_SendGrayArrays();
+  else
+  {
+    gray_div++;
+    if(gray_div>=100)
+    {
+      gray_div=0;
+      VOFA_SendGrayArrays();
+    }
+    speed_div=0;
+  }
 }
 
 // ================================================================
@@ -349,6 +365,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     PIDConFlag=1;
 		key_task();
     Disp_Flag=1;
+    VOFA_Flag=1;
 
     MotorAR.now=(int16_t)(__HAL_TIM_GET_COUNTER(&htim2));
     __HAL_TIM_SET_COUNTER(&htim2,0);

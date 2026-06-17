@@ -10,47 +10,56 @@
 #include <string.h>
 #include <stdlib.h>
 
-// 串口单字节接收缓冲区，由 HAL_UART_Receive_IT() 写入。
+typedef struct pid_s pid_t;
+
+/* 待恢复注释 HAL_UART_Receive_IT() 待恢复注释 */
 extern uint8_t vofa_rx_ch;
 
-// 一行 VOFA 命令的接收缓冲区，例如 "T=50"、"KP=10"。
+/* 待恢复注释 "STATUS"待恢复注释"T=20"待恢复注释"SET P:10 I:5 D:0.5"待恢复注释 */
 extern char vofa_rx_line[64];
 
-// 当前已接收到 vofa_rx_line 的第几个字符。
+/* 待恢复注释 vofa_rx_line 待恢复注释 */
 extern uint8_t vofa_rx_idx;
 
 /*
- * 初始化 VOFA 串口通信。
- * huart：用于和 VOFA 通信的 UART 句柄，例如 &huart1。
+ * 待恢复注释
+ *   0 - 待恢复注释
+ *   1 - 待恢复注释
  */
+extern uint8_t vofa_stream_mode;
+
+/*
+ * 待恢复注释
+ *   0 - State==0 待恢复注释
+ *   1 - State==0 待恢复注释
+ */
+extern uint8_t vofa_speed_hold;
+
+/* 待恢复注释 VOFA 待恢复注释 1 待恢复注释 */
 void VOFA_Init(UART_HandleTypeDef *huart);
 
-/*
- * 向 VOFA 发送速度环波形数据。
- * target_speed：目标速度，用作第一路波形。
- * real_speed：实际速度，用作第二路波形。
- */
-void VOFA_SendSpeedLoop(float target_speed,float real_speed);
+/* 待恢复注释 */
+void VOFA_SetSpeedTuneDefaults(void);
 
 /*
- * 发送 8 路灰度数组。
- * 每次发送 3 行：
+ * 待恢复注释 8d24f0e... 待恢复注释 PID 待恢复注释
+ * 待恢复注释
+ *   tick,target,now,out,error,p,i,d\n
+ */
+void VOFA_SendSpeedLoop(volatile pid_t *pid);
+
+/*
+ * 待恢复注释 8 待恢复注释 3 待恢复注释
  *   A,adc0,adc1,...,adc7
  *   N,nor0,nor1,...,nor7
  *   D,dark0,dark1,...,dark7
  */
 void VOFA_SendGrayArrays(void);
 
-/*
- * HAL 串口接收完成回调函数。
- * huart：触发本次接收中断的 UART 句柄。
- */
+/* USART1 待恢复注释 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 
-/*
- * 解析 VOFA 发来的单行命令。
- * line：以 '\0' 结尾的命令字符串，例如 "T=50"、"KP=8.5"。
- */
+/* 待恢复注释PID 待恢复注释 */
 void VOFA_ParseLine(char *line);
 
 #endif
