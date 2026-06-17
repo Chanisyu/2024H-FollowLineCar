@@ -38,13 +38,12 @@ uint8_t gray_board_read(void)
 		HAL_GPIO_WritePin(GRAY_CLK_PORT, GRAY_CLK_PIN, GPIO_PIN_SET);
 		gray_delay_short();
 
+		HAL_GPIO_WritePin(GRAY_CLK_PORT, GRAY_CLK_PIN, GPIO_PIN_RESET);
+
 		if (HAL_GPIO_ReadPin(GRAY_DAT_PORT, GRAY_DAT_PIN) == GPIO_PIN_SET)
 		{
 			value |= (1u << i);
 		}
-
-		HAL_GPIO_WritePin(GRAY_CLK_PORT, GRAY_CLK_PIN, GPIO_PIN_RESET);
-		gray_delay_short();
 	}
 
 	return value;

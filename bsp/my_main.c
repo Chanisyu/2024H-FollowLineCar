@@ -153,7 +153,7 @@ void key_proc()
 			{
 				case 0:
 				{
-					Kp+=0.25;
+					Kp+=0.1;
 					break;
 				}
 				case 1:
@@ -180,7 +180,7 @@ void key_proc()
 			{
 				case 0:
 				{
-					Kp-=0.25;
+					Kp-=0.1;
 					break;
 				}
 				case 1:
