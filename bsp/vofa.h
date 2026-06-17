@@ -33,6 +33,15 @@ void VOFA_Init(UART_HandleTypeDef *huart);
 void VOFA_SendSpeedLoop(float target_speed,float real_speed);
 
 /*
+ * 发送 8 路灰度数组。
+ * 每次发送 3 行：
+ *   A,adc0,adc1,...,adc7
+ *   N,nor0,nor1,...,nor7
+ *   D,dark0,dark1,...,dark7
+ */
+void VOFA_SendGrayArrays(void);
+
+/*
  * HAL 串口接收完成回调函数。
  * huart：触发本次接收中断的 UART 句柄。
  */

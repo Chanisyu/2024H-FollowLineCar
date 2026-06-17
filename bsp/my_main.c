@@ -322,7 +322,16 @@ void Data_proc()
 
 void VOFA_proc()
 {
-  if(VOFA_Flag==0)  return;
+  static uint32_t last_send_tick=0;
+  uint32_t now_tick=HAL_GetTick();
+
+  if(now_tick-last_send_tick<1000)
+  {
+    return;
+  }
+
+  last_send_tick=now_tick;
+  VOFA_SendGrayArrays();
 }
 
 // ================================================================
@@ -359,3 +368,5 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     Data_Flag=1;
   }
 }
+
+
