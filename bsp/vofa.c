@@ -1,6 +1,55 @@
-/*
-   * 速度环曲线格式为 target,real\n，第一列为目标速度，第二列为实测速度。
-   */
+/**
+ * @file    vofa.c
+ * @brief   VOFA 串口命令解析和调试波形发送。
+ *
+ * 文件结构：
+ *   1. VOFA_Init()                 - 启动串口接收中断
+ *   2. VOFA_SetSpeedTuneDefaults() - 恢复速度调参默认状态
+ *   3. VOFA_SendSpeedLoop()        - 发送速度环波形数据
+ *   4. VOFA_SendGrayArrays()       - 发送灰度传感器数组数据
+ *   5. HAL_UART_RxCpltCallback()   - 接收 1 字节并拼接成命令行
+ *   6. VOFA_ParseLine()            - 解析串口命令并修改参数
+ */
+
+#include "vofa.h"
+#include "OLED.h"
+#include "stdio.h"
+#include "pid.h"
+#include "gray_track.h"
+
+#define VOFA_STREAM_SPEED 0
+#define VOFA_STREAM_GRAY  1
+
+uint8_t vofa_rx_ch;
+char vofa_rx_line[64];
+uint8_t vofa_rx_idx=0;
+uint8_t vofa_stream_mode=VOFA_STREAM_SPEED;
+uint8_t vofa_speed_hold=0;
+
+static UART_HandleTypeDef *vofa_uart=NULL;
+
+void VOFA_SetSpeedTuneDefaults(void)
+{
+  vofa_stream_mode=VOFA_STREAM_SPEED;
+  vofa_speed_hold=0;
+  pid_set_tar_speed(0,0);
+  pid_reset_speed_loop();
+}
+
+void VOFA_Init(UART_HandleTypeDef *huart)
+{
+  vofa_uart=huart;
+  VOFA_SetSpeedTuneDefaults();
+  HAL_UART_Receive_IT(vofa_uart,&vofa_rx_ch,1);
+}
+
+void VOFA_SendSpeedLoop(float target_speed,float real_speed)
+{
+  if(vofa_uart==NULL)
+  {
+    return;
+  }
+
   char buf[100];
   int len=snprintf(buf,sizeof(buf),"%f,%f\n",target_speed,real_speed);
 
@@ -17,9 +66,6 @@ void VOFA_SendGrayArrays(void)
     return;
   }
 
-  /*
-   * 先刷新灰度传感器数据，再发送 8 路原始 ADC、归一化和压线判定数组。
-   */
   gray_sensor_update();
 
   char buf[256];
@@ -55,7 +101,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
     else if(vofa_rx_ch=='\r')
     {
-      /* 忽略 CR 字符，以 LF 作为命令结束标志。 */
     }
     else
     {

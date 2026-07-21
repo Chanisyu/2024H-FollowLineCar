@@ -1,0 +1,71 @@
+# Keil uVision Colors & Fonts export
+# Source: D:\Keil5\UV4\global.prop
+# Exported: 2026-07-21
+
+# Editor behavior used by the current C/C++ project
+code.page=936
+caretline.visible=1
+highlight.matchingbraces=1
+print.syntax.coloring=1
+use.tab.color=1
+syntax.colouring.cpp=1
+use.tab.cpp=0
+tabsize.cpp=2
+line.margin.visible.cpp=1
+fold.cpp=1
+monospaced.font.cpp=1
+
+# Selection, caret and right-edge colors
+selection.fore=#000000
+selection.back=#86C7F7
+caret.fore=#FF00FF
+caret.back=#404000
+edge.colour=#66FAFA
+edge.mode=0
+edge.column=80
+
+# C/C++ Editor files
+font.monospace.cpp=Courier New
+style.cpp.32=font:Courier New,size:16,fore:#C0C0C0,back:#000000
+style.cpp.4=font:Courier New,size:16,fore:#00FF00,back:#000000
+style.cpp.10=font:Courier New,size:16,fore:#FFFFFF,back:#000000
+style.cpp.1=font:Courier New,size:16,fore:#00FF00,back:#000000
+style.cpp.2=font:Courier New,size:16,fore:#00FF00,back:#000000
+style.cpp.5=font:Courier New,size:16,fore:#FF0080,back:#000000
+style.cpp.6=font:Courier New,size:16,fore:#00FFFF,back:#000000
+style.cpp.11=font:Courier New,size:16,fore:#FFFFFF,back:#000000
+style.cpp.9=font:Courier New,size:16,fore:#FF8000,back:#000000
+style.cpp.7=font:Courier New,size:16,fore:#FF00FF,back:#000000
+style.cpp.34=font:Courier New,size:16,fore:#500000,back:#20FFFF
+style.cpp.35=font:Courier New,size:16,fore:#FF0000,back:#FFFFFF
+style.cpp.16=font:Courier New,size:16,fore:#B00040,back:#FFFFFF
+style.cpp.12=font:Courier New,size:16,fore:#000000,back:#E0C0E0
+
+# Asm Editor files
+syntax.colouring.asm=1
+use.tab.asm=0
+tabsize.asm=2
+line.margin.visible.asm=1
+monospaced.font.asm=1
+font.monospace.asm=Courier New
+style.asm.32=font:Courier New,size:10,fore:#000000,back:#FFFFFF
+style.asm.1=font:Courier New,size:10,fore:#616161,back:#FFFFFF
+style.asm.2=font:Courier New,size:10,fore:#FF0000,back:#FFFFFF
+style.asm.3=font:Courier New,size:10,fore:#7F007F,back:#FFFFFF
+style.asm.4=font:Courier New,size:10,fore:#000000,back:#FFFFFF
+style.asm.5=font:Courier New,size:10,fore:#000000,back:#FFFFFF
+style.asm.6=font:Courier New,size:10,fore:#0000FF,back:#FFFFFF
+style.asm.7=font:Courier New,size:10,fore:#0000FF,back:#FFFFFF
+style.asm.9=font:Courier New,size:10,fore:#0000FF,back:#FFFFFF
+style.asm.10=font:Courier New,size:10,fore:#0000FF,back:#FFFFFF
+style.asm.11=font:Courier New,size:10,fore:#007F00,back:#FFFFFF
+style.asm.12=font:Courier New,size:10,fore:#7F007F,back:#FFFFFF
+style.asm.8=font:Courier New,size:10,fore:#46AA03,back:#FFFFFF
+
+# Text Editor files
+use.tabs=0
+tabsize=2
+line.margin.visible.txt=0
+monospaced.font.txt=1
+font.monospace.txt=Consolas
+style.txt.32=font:Verdana,size:10,fore:#000000,back:#FFFFFF
